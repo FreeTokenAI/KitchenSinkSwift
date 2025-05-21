@@ -8,7 +8,7 @@ class DocumentLoader: ObservableObject {
         self.freeTokenClient = freeTokenClient
     }
     
-    func createDocument(metadata: String, body: String, searchScope: String, completion: @escaping (Bool, String) -> Void) {
+    func createDocument(body: String, searchScope: String, metadata: Optional<String> = nil, completion: @escaping (Bool, String) -> Void) {
         freeTokenClient.client.createDocument(
             content: body,
             metadata: metadata,
@@ -42,7 +42,7 @@ class DocumentLoader: ObservableObject {
         )
     }
     
-    func searchDocuments(query: String, searchScope: String? = nil, maxResults: Int? = nil, completion: @escaping (Result<FreeToken.DocumentSearchResults, Error>) -> Void
+    func searchDocuments(query: String, searchScope: String? = nil, maxResults: Int? = nil, completion: @escaping (Result<[FreeToken.DocumentChunk], Error>) -> Void
     ) {
         freeTokenClient.client.searchDocuments(
             query: query,
@@ -50,7 +50,7 @@ class DocumentLoader: ObservableObject {
             maxResults: maxResults,
             success: { results in
                 DispatchQueue.main.async {
-                    completion(.success(results))
+                    completion(.success(results.documentChunks))
                 }
             },
             error: { error in

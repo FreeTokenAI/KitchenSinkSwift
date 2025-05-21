@@ -4,14 +4,14 @@ struct DocumentLoaderView: View {
     @EnvironmentObject var freeTokenClient: FreeTokenClient
     @StateObject private var documentLoader: DocumentLoader
     @State private var statusMessage: String = ""
-    @State private var showCreateView = false
+    @State private var navigationPath = NavigationPath()
 
     init(freeTokenClient: FreeTokenClient) {
         _documentLoader = StateObject(wrappedValue: DocumentLoader(freeTokenClient: freeTokenClient))
     }
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $navigationPath) {
             ScrollView {
                 VStack(spacing: 28) {
                     VStack(alignment: .leading, spacing: 14) {
@@ -40,41 +40,41 @@ struct DocumentLoaderView: View {
                             Label("Create a document to be searched in your App’s vector store.", systemImage: "plus.square.fill")
                                 .font(.callout)
                                 .foregroundColor(.accentColor)
-                            NavigationLink(
-                                destination: DocumentCreateView(
+                            NavigationLink {
+                                DocumentCreateView(
                                     freeTokenClient: freeTokenClient,
                                     documentLoader: documentLoader
-                                ),
-                                isActive: $showCreateView
-                            ) {
-                                Button(action: { showCreateView = true }) {
-                                    Text("Create Document")
-                                        .fontWeight(.semibold)
-                                        .frame(maxWidth: .infinity)
-                                        .padding()
-                                        .background(
-                                            LinearGradient(
-                                                gradient: Gradient(colors: [Color.accentColor, Color.accentColor.opacity(0.7)]),
-                                                startPoint: .leading,
-                                                endPoint: .trailing
-                                            )
+                                )
+                            } label: {
+                                Text("Create Document")
+                                    .fontWeight(.semibold)
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(
+                                        LinearGradient(
+                                            gradient: Gradient(colors: [Color.accentColor, Color.accentColor.opacity(0.7)]),
+                                            startPoint: .leading,
+                                            endPoint: .trailing
                                         )
-                                        .foregroundColor(.white)
-                                        .cornerRadius(12)
-                                        .shadow(color: Color.accentColor.opacity(0.15), radius: 4, x: 0, y: 2)
-                                }
-                                .buttonStyle(PlainButtonStyle())
+                                    )
+                                    .foregroundColor(.white)
+                                    .cornerRadius(12)
+                                    .shadow(color: Color.accentColor.opacity(0.15), radius: 4, x: 0, y: 2)
                             }
+                            .buttonStyle(PlainButtonStyle())
                         }
 
                         VStack(alignment: .leading, spacing: 8) {
                             Label("Search for a document by ID.", systemImage: "number.square")
                                 .font(.callout)
                                 .foregroundColor(.secondary)
-                            Button(action: {
-                                // TODO: Implement getting document by ID
-                            }) {
-                                Text("TODO: Get Document by ID")
+                            NavigationLink {
+                                DocumentSearchByIdView(
+                                    freeTokenClient: freeTokenClient,
+                                    documentLoader: documentLoader
+                                )
+                            } label: {
+                                Text("Get Document by ID")
                                     .fontWeight(.semibold)
                                     .frame(maxWidth: .infinity)
                                     .padding()
@@ -96,10 +96,13 @@ struct DocumentLoaderView: View {
                             Label("Search for document chunks with a query.", systemImage: "magnifyingglass")
                                 .font(.callout)
                                 .foregroundColor(.secondary)
-                            Button(action: {
-                                // TODO: Implement searching documents
-                            }) {
-                                Text("TODO: Search Documents")
+                            NavigationLink {
+                                DocumentSearchByQueryView(
+                                    freeTokenClient: freeTokenClient,
+                                    documentLoader: documentLoader
+                                )
+                            } label: {
+                                Text("Search Documents")
                                     .fontWeight(.semibold)
                                     .frame(maxWidth: .infinity)
                                     .padding()
