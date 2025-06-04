@@ -51,18 +51,19 @@ class ChatLoader: ObservableObject, @unchecked Sendable {
     
     func downloadModel() async {
         await freeTokenClient.client.downloadAIModel { _ in
-            self.loadModel()
+            Task {
+                await self.loadModel()
+            }
         } error: { error in
             self.textResponse = error.message ?? error.localizedDescription
             self.setMessage()
         } progressPercent: { progressPercent in
             self.setDownloadPercent(progressPercent)
         }
-
     }
     
-    func loadModel() {
-        freeTokenClient.client.loadModel { _ in
+    func loadModel() async {
+        await freeTokenClient.client.loadModel { _ in
             self.createMessageThread()
             self.freeTokenClient.registered = true
         } error: { error in
@@ -96,7 +97,9 @@ class ChatLoader: ObservableObject, @unchecked Sendable {
         
         freeTokenClient.client.addMessageToThread(messageThreadID: self.messageThreadID!, role: "user", content: content) { message in
             print("Successfully added message to thread")
-            self.runMessageThread()
+            Task {
+                await self.runMessageThread()
+            }
 //                self.generateLocalCompletion()
         } error: { error in
             self.errorState = true
@@ -105,10 +108,10 @@ class ChatLoader: ObservableObject, @unchecked Sendable {
         }
     }
     
-    func runMessageThread() {
+    func runMessageThread() async {
         if errorState { return }
         
-        freeTokenClient.client.runMessageThread(id: self.messageThreadID!) { messageThreadRun in
+        await freeTokenClient.client.runMessageThread(id: self.messageThreadID!) { messageThreadRun in
             // Nothing to do here
             self.textResponse += "\n\n"
             self.setMessage()

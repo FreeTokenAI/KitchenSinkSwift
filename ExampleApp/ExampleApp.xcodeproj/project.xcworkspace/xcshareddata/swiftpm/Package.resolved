@@ -1,6 +1,15 @@
 {
-  "originHash" : "3a73c0c716c2923353e6308741db3e9f11bba0ab29a8286d9296855bb6943d57",
+  "originHash" : "95c0881b53ef1b9399e9e765e5c626818c89271d8bafe959031c91d4ab958451",
   "pins" : [
+    {
+      "identity" : "freetokenswift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/FreeTokenAI/FreeTokenSwift",
+      "state" : {
+        "branch" : "main",
+        "revision" : "d08388bbb3a8d5d2f2c8c035ca4271dbca9bbb7d"
+      }
+    },
     {
       "identity" : "gzipswift",
       "kind" : "remoteSourceControl",
@@ -15,17 +24,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/johnmai-dev/Jinja",
       "state" : {
-        "revision" : "bbddb92fc51ae420b87300298370fd1dfc308f73",
-        "version" : "1.1.1"
-      }
-    },
-    {
-      "identity" : "llamacppswift",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/FreeTokenAI/LlamaCppSwift",
-      "state" : {
-        "branch" : "main",
-        "revision" : "ca2cc6ddd93ac0fa3767c1324fab351a9a008e75"
+        "revision" : "31c4dd39bcdc07eaa42a384bdc88ea599022b800",
+        "version" : "1.1.2"
       }
     },
     {
@@ -51,8 +51,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-collections.git",
       "state" : {
-        "revision" : "671108c96644956dddcd89dd59c203dcdb36cec7",
-        "version" : "1.1.4"
+        "revision" : "c1805596154bb3a265fd91b8ac0c4433b4348fb0",
+        "version" : "1.2.0"
       }
     },
     {
@@ -60,8 +60,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/huggingface/swift-transformers",
       "state" : {
-        "revision" : "ebee6216c1250f046e362daed3806458aaa0ca1c",
-        "version" : "0.1.19"
+        "revision" : "940a4fac109d7d68817b22382de4894a8ea945c3",
+        "version" : "0.1.20"
       }
     }
   ],
