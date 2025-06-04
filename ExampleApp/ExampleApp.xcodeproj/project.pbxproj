@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		A41A67072DBC0240006AAA28 /* FreeToken in Frameworks */ = {isa = PBXBuildFile; productRef = A41A67062DBC0240006AAA28 /* FreeToken */; };
 		A46519472DA0589E001157AD /* FreeToken in Frameworks */ = {isa = PBXBuildFile; productRef = A46519462DA0589E001157AD /* FreeToken */; };
+		A4EABF5B2DEA34BB00DFA938 /* FreeToken in Frameworks */ = {isa = PBXBuildFile; productRef = A4EABF5A2DEA34BB00DFA938 /* FreeToken */; };
 		BC9B806F2D8B885D00AFB75D /* FreeToken in Frameworks */ = {isa = PBXBuildFile; productRef = BC9B806E2D8B885D00AFB75D /* FreeToken */; };
 /* End PBXBuildFile section */
 
@@ -29,6 +30,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A4EABF5B2DEA34BB00DFA938 /* FreeToken in Frameworks */,
 				A41A67072DBC0240006AAA28 /* FreeToken in Frameworks */,
 				A46519472DA0589E001157AD /* FreeToken in Frameworks */,
 				BC9B806F2D8B885D00AFB75D /* FreeToken in Frameworks */,
@@ -77,6 +79,7 @@
 				BC9B806E2D8B885D00AFB75D /* FreeToken */,
 				A46519462DA0589E001157AD /* FreeToken */,
 				A41A67062DBC0240006AAA28 /* FreeToken */,
+				A4EABF5A2DEA34BB00DFA938 /* FreeToken */,
 			);
 			productName = ExampleApp;
 			productReference = BC51F5662CF66E6100CAA4DD /* ExampleApp.app */;
@@ -107,7 +110,7 @@
 			mainGroup = BC51F55D2CF66E6100CAA4DD;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				A41A67052DBC0240006AAA28 /* XCLocalSwiftPackageReference "../../FreeTokenSwift-Development" */,
+				A4EABF592DEA34BB00DFA938 /* XCRemoteSwiftPackageReference "FreeTokenSwift" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = BC51F5672CF66E6100CAA4DD /* Products */;
@@ -344,12 +347,16 @@
 		};
 /* End XCConfigurationList section */
 
-/* Begin XCLocalSwiftPackageReference section */
-		A41A67052DBC0240006AAA28 /* XCLocalSwiftPackageReference "../../FreeTokenSwift-Development" */ = {
-			isa = XCLocalSwiftPackageReference;
-			relativePath = "../../FreeTokenSwift-Development";
+/* Begin XCRemoteSwiftPackageReference section */
+		A4EABF592DEA34BB00DFA938 /* XCRemoteSwiftPackageReference "FreeTokenSwift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/FreeTokenAI/FreeTokenSwift";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
 		};
-/* End XCLocalSwiftPackageReference section */
+/* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
 		A41A67062DBC0240006AAA28 /* FreeToken */ = {
@@ -358,6 +365,11 @@
 		};
 		A46519462DA0589E001157AD /* FreeToken */ = {
 			isa = XCSwiftPackageProductDependency;
+			productName = FreeToken;
+		};
+		A4EABF5A2DEA34BB00DFA938 /* FreeToken */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A4EABF592DEA34BB00DFA938 /* XCRemoteSwiftPackageReference "FreeTokenSwift" */;
 			productName = FreeToken;
 		};
 		BC9B806E2D8B885D00AFB75D /* FreeToken */ = {
