@@ -1,13 +1,14 @@
 import SwiftUI
 
-struct DocumentLoaderView: View {
-    @EnvironmentObject var freeTokenClient: FreeTokenClient
-    @StateObject private var documentLoader: DocumentLoader
+struct DocumentView: View {
+    private var freeTokenClient: FreeTokenClient
+    @StateObject private var documentLoader: DocumentViewModel
     @State private var statusMessage: String = ""
     @State private var navigationPath = NavigationPath()
 
     init(freeTokenClient: FreeTokenClient) {
-        _documentLoader = StateObject(wrappedValue: DocumentLoader(freeTokenClient: freeTokenClient))
+        self.freeTokenClient = freeTokenClient
+        _documentLoader = StateObject(wrappedValue: DocumentViewModel(freeTokenClient: freeTokenClient))
     }
 
     var body: some View {

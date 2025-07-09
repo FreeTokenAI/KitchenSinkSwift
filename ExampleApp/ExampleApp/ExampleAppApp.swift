@@ -11,8 +11,7 @@ struct ExampleAppApp: App {
                     .tabItem {
                         Label("ChatLoader", systemImage: "bubble.left.and.bubble.right")
                     }
-                DocumentLoaderView(freeTokenClient: freeTokenClient)
-                    .environmentObject(freeTokenClient)
+                DocumentView(freeTokenClient: freeTokenClient)
                     .tabItem {
                         Label("DocumentLoader", systemImage: "doc.text")
                     }

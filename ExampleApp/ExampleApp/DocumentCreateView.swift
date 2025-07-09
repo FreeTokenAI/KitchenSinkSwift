@@ -1,8 +1,7 @@
 import SwiftUI
 
 struct DocumentCreateView: View {
-    @EnvironmentObject var freeTokenClient: FreeTokenClient
-    @StateObject private var documentLoader: DocumentLoader
+    @StateObject private var documentLoader: DocumentViewModel
     @State private var documentMetadata: String = ""
     @State private var documentBody: String = ""
     @State private var searchScope: String = ""
@@ -10,8 +9,8 @@ struct DocumentCreateView: View {
     @State private var showValidationError: Bool = false
     @Environment(\.dismiss) private var dismiss
 
-    init(freeTokenClient: FreeTokenClient, documentLoader: DocumentLoader) {
-        _documentLoader = StateObject(wrappedValue: DocumentLoader(freeTokenClient: freeTokenClient))
+    init(freeTokenClient: FreeTokenClient, documentLoader: DocumentViewModel) {
+        _documentLoader = StateObject(wrappedValue: DocumentViewModel(freeTokenClient: freeTokenClient))
     }
 
     private var canSubmit: Bool {
@@ -114,12 +113,14 @@ struct DocumentCreateView: View {
                         Button(action: {
                             if canSubmit {
                                 showValidationError = false
-                                documentLoader.createDocument(
-                                    body: documentBody,
-                                    searchScope: searchScope,
-                                    metadata: documentMetadata
-                                ) { success, message in
-                                    statusMessage = message
+                                Task {
+                                    await documentLoader.createDocument(
+                                        body: documentBody,
+                                        searchScope: searchScope,
+                                        metadata: documentMetadata
+                                    ) { success, message in
+                                        statusMessage = message
+                                    }
                                 }
                             } else {
                                 showValidationError = true

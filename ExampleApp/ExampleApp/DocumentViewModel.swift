@@ -1,15 +1,15 @@
 import SwiftUI
 import FreeToken
 
-class DocumentLoader: ObservableObject {
+class DocumentViewModel: ObservableObject {
     private var freeTokenClient: FreeTokenClient
     
     init(freeTokenClient: FreeTokenClient) {
         self.freeTokenClient = freeTokenClient
     }
     
-    func createDocument(body: String, searchScope: String, metadata: Optional<String> = nil, completion: @escaping (Bool, String) -> Void) {
-        freeTokenClient.client.createDocument(
+    func createDocument(body: String, searchScope: String, metadata: Optional<String> = nil, completion: @escaping (Bool, String) -> Void) async {
+        await freeTokenClient.client.createDocument(
             content: body,
             metadata: metadata,
             searchScope: searchScope,
@@ -26,8 +26,8 @@ class DocumentLoader: ObservableObject {
         )
     }
     
-    func getDocument(byID id: String, completion: @escaping (Result<FreeToken.Document, Error>) -> Void) {
-        freeTokenClient.client.getDocument(
+    func getDocument(byID id: String, completion: @escaping (Result<FreeToken.Document, Error>) -> Void) async {
+        await freeTokenClient.client.getDocument(
             id: id,
             success: { document in
                 DispatchQueue.main.async {
@@ -43,8 +43,8 @@ class DocumentLoader: ObservableObject {
     }
     
     func searchDocuments(query: String, searchScope: String? = nil, maxResults: Int? = nil, completion: @escaping (Result<[FreeToken.DocumentChunk], Error>) -> Void
-    ) {
-        freeTokenClient.client.searchDocuments(
+    ) async {
+        await freeTokenClient.client.searchDocuments(
             query: query,
             searchScope: searchScope,
             maxResults: maxResults,
