@@ -10,6 +10,7 @@
 		A41A67072DBC0240006AAA28 /* FreeToken in Frameworks */ = {isa = PBXBuildFile; productRef = A41A67062DBC0240006AAA28 /* FreeToken */; };
 		A46519472DA0589E001157AD /* FreeToken in Frameworks */ = {isa = PBXBuildFile; productRef = A46519462DA0589E001157AD /* FreeToken */; };
 		A4EABF5B2DEA34BB00DFA938 /* FreeToken in Frameworks */ = {isa = PBXBuildFile; productRef = A4EABF5A2DEA34BB00DFA938 /* FreeToken */; };
+		A4FC6EE92DFA351600925D82 /* MarkdownUI in Frameworks */ = {isa = PBXBuildFile; productRef = A4FC6EE82DFA351600925D82 /* MarkdownUI */; };
 		BC9B806F2D8B885D00AFB75D /* FreeToken in Frameworks */ = {isa = PBXBuildFile; productRef = BC9B806E2D8B885D00AFB75D /* FreeToken */; };
 /* End PBXBuildFile section */
 
@@ -34,6 +35,7 @@
 				A41A67072DBC0240006AAA28 /* FreeToken in Frameworks */,
 				A46519472DA0589E001157AD /* FreeToken in Frameworks */,
 				BC9B806F2D8B885D00AFB75D /* FreeToken in Frameworks */,
+				A4FC6EE92DFA351600925D82 /* MarkdownUI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -80,6 +82,7 @@
 				A46519462DA0589E001157AD /* FreeToken */,
 				A41A67062DBC0240006AAA28 /* FreeToken */,
 				A4EABF5A2DEA34BB00DFA938 /* FreeToken */,
+				A4FC6EE82DFA351600925D82 /* MarkdownUI */,
 			);
 			productName = ExampleApp;
 			productReference = BC51F5662CF66E6100CAA4DD /* ExampleApp.app */;
@@ -111,6 +114,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				A4EABF592DEA34BB00DFA938 /* XCRemoteSwiftPackageReference "FreeTokenSwift" */,
+				A4FC6EE72DFA351600925D82 /* XCRemoteSwiftPackageReference "swift-markdown-ui" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = BC51F5672CF66E6100CAA4DD /* Products */;
@@ -356,6 +360,14 @@
 				kind = branch;
 			};
 		};
+		A4FC6EE72DFA351600925D82 /* XCRemoteSwiftPackageReference "swift-markdown-ui" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/gonzalezreal/swift-markdown-ui";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.4.1;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -371,6 +383,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = A4EABF592DEA34BB00DFA938 /* XCRemoteSwiftPackageReference "FreeTokenSwift" */;
 			productName = FreeToken;
+		};
+		A4FC6EE82DFA351600925D82 /* MarkdownUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A4FC6EE72DFA351600925D82 /* XCRemoteSwiftPackageReference "swift-markdown-ui" */;
+			productName = MarkdownUI;
 		};
 		BC9B806E2D8B885D00AFB75D /* FreeToken */ = {
 			isa = XCSwiftPackageProductDependency;

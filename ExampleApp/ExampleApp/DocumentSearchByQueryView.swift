@@ -3,7 +3,7 @@ import FreeToken
 
 struct DocumentSearchByQueryView: View {
     @EnvironmentObject var freeTokenClient: FreeTokenClient
-    @StateObject private var documentLoader: DocumentLoader
+    @StateObject private var documentLoader: DocumentViewModel
     @State private var documentQuery: String = ""
     @State private var documentSearchScope: String = ""
     @State private var documentMaxResultsString: String = ""
@@ -11,8 +11,8 @@ struct DocumentSearchByQueryView: View {
     @State private var searchResults: [FreeToken.DocumentChunk] = []
     @Environment(\.dismiss) private var dismiss
 
-    init(freeTokenClient: FreeTokenClient, documentLoader: DocumentLoader) {
-        _documentLoader = StateObject(wrappedValue: DocumentLoader(freeTokenClient: freeTokenClient))
+    init(freeTokenClient: FreeTokenClient, documentLoader: DocumentViewModel) {
+        _documentLoader = StateObject(wrappedValue: DocumentViewModel(freeTokenClient: freeTokenClient))
     }
 
     var trimmedQuery: String {
@@ -87,22 +87,22 @@ struct DocumentSearchByQueryView: View {
                                 .keyboardType(.numberPad)
                         }
 
-                        Button(action: searchDocument) {
-                            Text("Search")
-                                .fontWeight(.semibold)
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(
-                                    LinearGradient(
-                                        gradient: Gradient(colors: [Color.accentColor, Color.accentColor.opacity(0.7)]),
-                                        startPoint: .leading,
-                                        endPoint: .trailing
-                                    )
-                                )
-                                .foregroundColor(.white)
-                                .cornerRadius(12)
-                                .shadow(color: Color.accentColor.opacity(0.15), radius: 4, x: 0, y: 2)
+                        Button("Search") {
+                            Task { await searchDocument() }
                         }
+                        .fontWeight(.semibold)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(
+                            LinearGradient(
+                                gradient: Gradient(colors: [Color.accentColor, Color.accentColor.opacity(0.7)]),
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .foregroundColor(.white)
+                        .cornerRadius(12)
+                        .shadow(color: Color.accentColor.opacity(0.15), radius: 4, x: 0, y: 2)
                         .buttonStyle(PlainButtonStyle())
                         .disabled(!isInputValid)
 
@@ -144,7 +144,7 @@ struct DocumentSearchByQueryView: View {
         }
     }
 
-    private func searchDocument() {
+    private func searchDocument() async {
         let trimmed = documentQuery.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else {
             statusMessage = "Please enter a valid document query."
@@ -155,7 +155,7 @@ struct DocumentSearchByQueryView: View {
         statusMessage = "Searching..."
         let maxResults = Int(documentMaxResultsString) ?? 10
         
-        documentLoader.searchDocuments(query: trimmed, searchScope: documentSearchScope, maxResults: maxResults) { result in
+        await documentLoader.searchDocuments(query: trimmed, searchScope: documentSearchScope, maxResults: maxResults) { result in
             switch result {
             case .success(let chunks):
                 searchResults = chunks

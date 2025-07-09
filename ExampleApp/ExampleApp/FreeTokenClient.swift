@@ -4,7 +4,7 @@ import CryptoKit
 
 class FreeTokenClient: ObservableObject {
     let encryptionKey = SymmetricKey(size: .bits256)
-    var registered = false
+    @Published var registered = false
 
     var client: FreeToken {
         if FreeToken.shared.isConfigured {

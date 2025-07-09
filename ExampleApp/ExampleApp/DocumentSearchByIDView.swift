@@ -3,14 +3,14 @@ import FreeToken
 
 struct DocumentSearchByIdView: View {
     @EnvironmentObject var freeTokenClient: FreeTokenClient
-    @StateObject private var documentLoader: DocumentLoader
+    @StateObject private var documentLoader: DocumentViewModel
     @State private var documentId: String = ""
     @State private var statusMessage: String = ""
     @State private var searchResult: FreeToken.Document? = nil
     @Environment(\.dismiss) private var dismiss
 
-    init(freeTokenClient: FreeTokenClient, documentLoader: DocumentLoader) {
-        _documentLoader = StateObject(wrappedValue: DocumentLoader(freeTokenClient: freeTokenClient))
+    init(freeTokenClient: FreeTokenClient, documentLoader: DocumentViewModel) {
+        _documentLoader = StateObject(wrappedValue: DocumentViewModel(freeTokenClient: freeTokenClient))
     }
     
     var trimmedDocumentId: String {
@@ -62,22 +62,22 @@ struct DocumentSearchByIdView: View {
                                                         .foregroundColor(.red)
                                                 }
 
-                        Button(action: searchDocument) {
-                            Text("Search")
-                                .fontWeight(.semibold)
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(
-                                    LinearGradient(
-                                        gradient: Gradient(colors: [Color.accentColor, Color.accentColor.opacity(0.7)]),
-                                        startPoint: .leading,
-                                        endPoint: .trailing
-                                    )
-                                )
-                                .foregroundColor(.white)
-                                .cornerRadius(12)
-                                .shadow(color: Color.accentColor.opacity(0.15), radius: 4, x: 0, y: 2)
+                        Button("Search") {
+                            Task { await searchDocument() }
                         }
+                        .fontWeight(.semibold)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(
+                            LinearGradient(
+                                gradient: Gradient(colors: [Color.accentColor, Color.accentColor.opacity(0.7)]),
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .foregroundColor(.white)
+                        .cornerRadius(12)
+                        .shadow(color: Color.accentColor.opacity(0.15), radius: 4, x: 0, y: 2)
                         .buttonStyle(PlainButtonStyle())
                         .disabled(!isInputValid)
 
@@ -120,7 +120,7 @@ struct DocumentSearchByIdView: View {
         }
     }
 
-    private func searchDocument() {
+    private func searchDocument() async {
         let trimmedId = documentId.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedId.isEmpty else {
             statusMessage = "Please enter a valid document ID."
@@ -131,7 +131,7 @@ struct DocumentSearchByIdView: View {
         statusMessage = "Searching..."
         searchResult = nil
 
-        documentLoader.getDocument(byID: trimmedId) { result in
+        await documentLoader.getDocument(byID: trimmedId) { result in
             switch result {
             case .success(let document):
                 searchResult = document
