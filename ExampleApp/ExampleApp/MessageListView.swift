@@ -76,7 +76,6 @@ struct MessageListView: View {
                     guard !newValue.isEmpty else { return }
                     
                     if let lastId = chatLoader.messages.last?.id, lastId == lastMessageId {
-                        ExampleAppLogger.shared.log("Change(of: chatLoader.streamedResponse) - About to scroll to the bottom")
                         withAnimation {
                             scrollProxy.scrollTo("MessageEnd", anchor: .bottom)
                         }

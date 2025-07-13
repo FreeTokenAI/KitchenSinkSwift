@@ -102,7 +102,7 @@ class ChatViewModel: ObservableObject, @unchecked Sendable {
         let userMessage = FreeToken.Message(role: .user, content: newMessage)
         
         await freeTokenClient.client.addMessageToThread(id: messageThreadID, message: userMessage) { message in
-            ExampleAppLogger.shared.log("✅ Successfully added message to thread", threadID: self.messageThreadID)
+            ExampleAppLogger.shared.log("✅ Successfully added message to thread - message role: \(message.role), id: \(message.id ?? "nil")", threadID: self.messageThreadID)
             Task {
                 await MainActor.run {
                     self.temporaryUserMessage = nil
@@ -136,13 +136,23 @@ class ChatViewModel: ObservableObject, @unchecked Sendable {
             Task {
                 await freeTokenClient.client.runMessageThread(id: messageThreadID) { message in
                     Task {
-                        ExampleAppLogger.shared.log("✅ Successfully ran message thread", threadID: self.messageThreadID)
+                        ExampleAppLogger.shared.log("✅ Successfully ran message thread - message role: \(message.role), id: \(message.id ?? "nil")", threadID: self.messageThreadID)
                         await MainActor.run {
                             self.isLoading = false
                             
-                            if !self.messages.contains(where: { $0.id == message.id }) {
+                            if !self.messages.contains(where: { $0.id == message.id
+                            }) {
                                 self.messages.append(message)
                             }
+  
+                            // Clear streaming response only after a delay to ensure smooth transition
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                // Only clear if the message is already in our messages array
+                                if self.messages.contains(where: { $0.id == message.id }) {
+                                    self.streamedResponse = ""
+                                }
+                            }
+
                             
                             guard message.content != "[]" else {
                                 self.lastError = "Error parsing response from AI. Refer to logs for more details."
@@ -159,7 +169,6 @@ class ChatViewModel: ObservableObject, @unchecked Sendable {
                     }
                 } chatStatusStream: { token, status in
                     Task {
-                        ExampleAppLogger.shared.log("✅ Successfully streaming", threadID: self.messageThreadID)
                         await MainActor.run {
                             self.responseStatus = ResponseStatus(rawValue: status.rawValue) ?? .starting
                             if let token = token {
@@ -208,6 +217,21 @@ class ChatViewModel: ObservableObject, @unchecked Sendable {
                     ExampleAppLogger.shared.log("❌ Error generating title: \(error.message)", level: .error, threadID: self.messageThreadID)
                     continuation.resume(returning: nil)
                 }
+            }
+        }
+    }
+    
+    func deleteMessageThread(threadID: String?) async -> Bool {
+        guard let threadID else { return false }
+        
+        return await withCheckedContinuation { continuation in
+            freeTokenClient.client.deleteMessageThread(id: threadID) { _ in
+                ExampleAppLogger.shared.log("✅ Successfully deleted message thread", threadID: threadID)
+                continuation.resume(returning: true)
+            } error: { error in
+                ExampleAppLogger.shared.log("❌ Failed to delete message thread: \(error.message)", threadID: threadID)
+                Task { await MainActor.run { self.lastError = error.message } }
+                continuation.resume(returning: false)
             }
         }
     }

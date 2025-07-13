@@ -9,6 +9,7 @@ struct ChatView: View {
     @State private var showDeleteResetDialog = false
     @State private var chatThread: ChatThread? = nil
     @ObservedObject var chatLoader: ChatViewModel
+    @State private var isCreatingThread = false
     
     private struct ScrollState {
         var shouldScrollToBottom: Bool = false
@@ -34,32 +35,42 @@ struct ChatView: View {
     }
     
     var body: some View {
-        VStack {
-            chatContentView()
-            Divider()
-            InputMessageView(
-                inputMessage: $inputMessage,
-                isLoading: chatLoader.isLoading,
-                disabledMessage: disabledInputMessage,
-            ) {
-                Task {
-                    await sendMessage()
+        ZStack {
+            VStack {
+                chatContentView()
+                Divider()
+                InputMessageView(
+                    inputMessage: $inputMessage,
+                    isLoading: chatLoader.isLoading,
+                    disabledMessage: disabledInputMessage,
+                ) {
+                    Task {
+                        await sendMessage()
+                    }
                 }
             }
-        }
-        .navigationTitle(chatThread?.title ?? "New Chat")
-        .toolbar { toolbarContent }
-        .confirmationDialog("Resetting Chat Options", isPresented: $showDeleteResetDialog, titleVisibility: .visible) {
-            confirmationDialogContent()
-        }
-        .onAppear {
-            handleOnAppear()
-        }
-        .onReceive(chatLoader.freeTokenClient.$registered) { isRegistered in
-            handleRegistrationChange(isRegistered)
-        }
-        .onDisappear {
-            handleOnDisappear()
+            .navigationTitle(chatThread?.title ?? "New Chat")
+            .toolbar { toolbarContent }
+            .confirmationDialog("Resetting Chat Options", isPresented: $showDeleteResetDialog, titleVisibility: .visible) {
+                confirmationDialogContent()
+            }
+            .onAppear {
+                handleOnAppear()
+            }
+            .onReceive(chatLoader.freeTokenClient.$registered) { isRegistered in
+                handleRegistrationChange(isRegistered)
+            }
+            .onDisappear {
+                handleOnDisappear()
+            }
+            if isCreatingThread {
+                Color.black.opacity(0.2)
+                    .ignoresSafeArea()
+                ProgressView("Creating new chat...")
+                    .padding()
+                    .background(RoundedRectangle(cornerRadius: 12).fill(Color(.systemBackground)))
+                    .shadow(radius: 10)
+            }
         }
     }
     
@@ -119,8 +130,7 @@ struct ChatView: View {
         Button("Reset Chat", role: .none) {
             resetChat()
         }
-        Button("Reset and Delete Chat", role: .destructive) {
-            resetChat()
+        Button("Delete and Reset Chat", role: .destructive) {
             deleteChat()
         }
         Button("Cancel", role: .cancel) { }
@@ -173,8 +183,11 @@ struct ChatView: View {
     
     // Helper functions
     // Creates a new FreeToken chat thread and updates the local model
-    private func createFreeTokenThread() {
-        if chatThread != nil { return }
+    private func createFreeTokenThread(completion: (() -> Void)? = nil) {
+        if chatThread != nil {
+            Task { await MainActor.run { completion?() } }
+            return
+        }
         
         ExampleAppLogger.shared.log("💬 createFreeTokenThread: Starting thread creation and Device registered: \(chatLoader.freeTokenClient.registered)")
         
@@ -187,6 +200,8 @@ struct ChatView: View {
                 chatThread?.freeTokenThreadId = thread.id
                 chatThread?.updatedAt = Date()
             }
+            
+            await MainActor.run { completion?() }
         }
     }
     
@@ -245,12 +260,38 @@ struct ChatView: View {
     }
     
     private func resetChat() {
-        ExampleAppLogger.shared.log("Resetting thread", threadID: chatThread?.freeTokenThreadId)
-        // TODO: reset chat
+        ExampleAppLogger.shared.log("💬 About to reset thread", threadID: chatThread?.freeTokenThreadId)
+        isCreatingThread = true
+        
+        // Clear current thread and messages
+        withAnimation {
+            chatThread = nil
+            chatLoader.messages.removeAll()
+            chatLoader.lastError = nil
+            chatLoader.responseStatus = .starting
+            inputMessage = ""
+        }
+        
+        // Create new thread in the backend
+        createFreeTokenThread {
+             withAnimation { isCreatingThread = false }
+            
+             ExampleAppLogger.shared.log("✅ Successfully reset message thread", threadID: chatThread?.freeTokenThreadId)
+         }
     }
     
     private func deleteChat() {
-        ExampleAppLogger.shared.log("Deleting chats from thread", threadID: chatThread?.freeTokenThreadId)
-        // TODO: delete chat
+        ExampleAppLogger.shared.log("💬 About to delete all chats from thread", threadID: chatThread?.freeTokenThreadId)
+        let threadID = chatThread?.freeTokenThreadId
+        
+        Task {
+            let deletion = await chatLoader.deleteMessageThread(threadID: threadID)
+            if deletion {
+                await MainActor.run { resetChat() }
+            } else {
+                ExampleAppLogger.shared.log("❌ Failed to delete message thread", threadID: threadID)
+            }
+        }
+        
     }
 }
