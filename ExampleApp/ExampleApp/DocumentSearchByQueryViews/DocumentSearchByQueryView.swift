@@ -9,18 +9,45 @@ struct DocumentSearchByQueryView: View {
     @State private var documentMaxResultsString: String = ""
     @State private var statusMessage: String = ""
     @State private var searchResults: [FreeToken.DocumentChunk] = []
+    @State private var documentStatus: DocumentStatus = .loading
     @Environment(\.dismiss) private var dismiss
 
     init(freeTokenClient: FreeTokenClient, documentLoader: DocumentViewModel) {
         _documentLoader = StateObject(wrappedValue: DocumentViewModel(freeTokenClient: freeTokenClient))
     }
 
-    var trimmedQuery: String {
+    private var trimmedQuery: String {
         documentQuery.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
-    var isInputValid: Bool {
+    private var isInputValid: Bool {
         !trimmedQuery.isEmpty
+    }
+    
+    private var canClear: Bool {
+        !documentQuery.isEmpty ||
+        !documentSearchScope.isEmpty ||
+        !documentMaxResultsString.isEmpty ||
+        !searchResults.isEmpty ||
+        !statusMessage.isEmpty
+    }
+    
+    // Logic for  loading and search results
+    private var searchResultsDisplayView: some View {
+        Group {
+            if !searchResults.isEmpty {
+                VStack(spacing: 12) {
+                    ForEach(searchResults, id: \.documentID) { chunk in
+                        DocumentSearchByQueryResultView(chunk: chunk)
+                    }
+                    .background(Color(.systemGray6))
+                    .cornerRadius(12)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            } else if !statusMessage.isEmpty {
+                DocumentStatusView(message: statusMessage, status: documentStatus)
+            }
+        }
     }
 
     var body: some View {
@@ -28,9 +55,6 @@ struct DocumentSearchByQueryView: View {
             ScrollView {
                 VStack(spacing: 28) {
                     VStack(alignment: .leading, spacing: 14) {
-                        Text("Search Documents by Query")
-                            .font(.title2)
-                            .fontWeight(.semibold)
                         Text("Enter a query to search for document chunks in your app’s vector store. Optionally, specify a search scope and max results.")
                             .font(.callout)
                             .foregroundColor(.secondary)
@@ -54,7 +78,7 @@ struct DocumentSearchByQueryView: View {
                             TextField("Enter Document Query", text: $documentQuery)
                                 .padding(8)
                                 .background(Color.clear)
-                                .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.accentColor.opacity(0.3), lineWidth: 1))
+                                .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.accentColor.opacity(0.3), lineWidth: 1.5))
                                 .autocapitalization(.none)
                                 .disableAutocorrection(true)
                         }
@@ -71,7 +95,7 @@ struct DocumentSearchByQueryView: View {
                             TextField("blog-posts", text: $documentSearchScope)
                                 .padding(8)
                                 .background(Color.clear)
-                                .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.accentColor.opacity(0.3), lineWidth: 1))
+                                .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.accentColor.opacity(0.3), lineWidth: 1.5))
                                 .autocapitalization(.none)
                                 .disableAutocorrection(true)
                         }
@@ -83,49 +107,26 @@ struct DocumentSearchByQueryView: View {
                             TextField("10", text: $documentMaxResultsString)
                                 .padding(8)
                                 .background(Color.clear)
-                                .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.accentColor.opacity(0.3), lineWidth: 1))
+                                .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.accentColor.opacity(0.3), lineWidth: 1.5))
                                 .keyboardType(.numberPad)
                         }
-
-                        Button("Search") {
-                            Task { await searchDocument() }
-                        }
-                        .fontWeight(.semibold)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(
-                            LinearGradient(
-                                gradient: Gradient(colors: [Color.accentColor, Color.accentColor.opacity(0.7)]),
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
-                        .foregroundColor(.white)
-                        .cornerRadius(12)
-                        .shadow(color: Color.accentColor.opacity(0.15), radius: 4, x: 0, y: 2)
-                        .buttonStyle(PlainButtonStyle())
-                        .disabled(!isInputValid)
-
-                        if !searchResults.isEmpty {
-                            VStack(spacing: 12) {
-                                ForEach(searchResults, id: \.documentID) { chunk in
-                                    VStack(alignment: .leading) {
-                                        Text("Document ID: \(chunk.documentID)")
-                                        Text("Metadata: \(chunk.documentMetadata)")
-                                        Text("Content: \(chunk.contentChunk)")
-                                    }
-                                    .padding()
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                }
-                                .background(Color(.systemGray6))
-                                .cornerRadius(12)
+                        
+                        FormActionsView(
+                            primaryLabel: "Search",
+                            canPrimary: isInputValid,
+                            showValidationError: !isInputValid && !documentQuery.isEmpty,
+                            validationErrorMessage: "Query cannot be empty or whitespace.",
+                            showClear: canClear,
+                            clearLabel: "Clear",
+                            onPrimary: {
+                                Task { await searchDocument() }
+                            },
+                            onClear: {
+                                clearFields()
                             }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                        } else if !statusMessage.isEmpty {
-                            Text(statusMessage)
-                                .font(.subheadline)
-                                .foregroundColor(.red)
-                        }
+                        )
+
+                        searchResultsDisplayView
                     }
                     .padding()
                     .background(
@@ -152,6 +153,7 @@ struct DocumentSearchByQueryView: View {
             return
         }
 
+        documentStatus = .loading
         statusMessage = "Searching..."
         let maxResults = Int(documentMaxResultsString) ?? 10
         
@@ -164,10 +166,20 @@ struct DocumentSearchByQueryView: View {
                 } else {
                     statusMessage = "No results found."
                 }
+                documentStatus = .success
             case .failure(let error):
                 searchResults = []
                 statusMessage = "Error: \(error.localizedDescription)"
+                documentStatus = .error
             }
         }
+    }
+    
+    private func clearFields() {
+        documentQuery = ""
+        documentSearchScope = ""
+        documentMaxResultsString = ""
+        searchResults = []
+        statusMessage = ""
     }
 }
