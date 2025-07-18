@@ -70,7 +70,7 @@ struct DocumentView: View {
                                 .font(.callout)
                                 .foregroundColor(.secondary)
                             NavigationLink {
-                                DocumentSearchByIdView(
+                                DocumentSearchByIDView(
                                     freeTokenClient: freeTokenClient,
                                     documentLoader: documentLoader
                                 )

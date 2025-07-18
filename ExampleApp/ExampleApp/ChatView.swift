@@ -68,7 +68,7 @@ struct ChatView: View {
                     .ignoresSafeArea()
                 ProgressView("Creating new chat...")
                     .padding()
-                    .background(RoundedRectangle(cornerRadius: 12).fill(Color(.systemBackground)))
+                    .background(RoundedRectangle(cornerRadius: 12).fill(Color(.white)))
                     .shadow(radius: 10)
             }
         }
@@ -264,7 +264,7 @@ struct ChatView: View {
         isCreatingThread = true
         
         // Clear current thread and messages
-        withAnimation {
+        withAnimation(.easeInOut(duration: 0.6)) {
             chatThread = nil
             chatLoader.messages.removeAll()
             chatLoader.lastError = nil
@@ -274,7 +274,7 @@ struct ChatView: View {
         
         // Create new thread in the backend
         createFreeTokenThread {
-             withAnimation { isCreatingThread = false }
+             withAnimation(.easeInOut(duration: 0.6)) { isCreatingThread = false }
             
              ExampleAppLogger.shared.log("✅ Successfully reset message thread", threadID: chatThread?.freeTokenThreadId)
          }
