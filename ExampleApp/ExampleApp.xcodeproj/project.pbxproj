@@ -30,11 +30,6 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		A4149DAA2E296D15005D9F6A /* ExampleAppTests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = ExampleAppTests;
-			sourceTree = "<group>";
-		};
 		BC51F5682CF66E6100CAA4DD /* ExampleApp */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = ExampleApp;
@@ -69,7 +64,6 @@
 			isa = PBXGroup;
 			children = (
 				BC51F5682CF66E6100CAA4DD /* ExampleApp */,
-				A4149DAA2E296D15005D9F6A /* ExampleAppTests */,
 				BC51F5672CF66E6100CAA4DD /* Products */,
 			);
 			sourceTree = "<group>";
@@ -98,9 +92,6 @@
 			);
 			dependencies = (
 				A4149DAE2E296D15005D9F6A /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				A4149DAA2E296D15005D9F6A /* ExampleAppTests */,
 			);
 			name = ExampleAppTests;
 			packageProductDependencies = (
@@ -391,19 +382,24 @@
 				DEVELOPMENT_TEAM = 5URTXK62TZ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "FreeToken Kitchen Sink";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				LIBRARY_SEARCH_PATHS = "$(SRCROOT)/Libraries";
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.fractionallab.NovaExampleApp;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.FreeToken.KitchenSink;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -422,19 +418,24 @@
 				DEVELOPMENT_TEAM = 5URTXK62TZ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "FreeToken Kitchen Sink";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				LIBRARY_SEARCH_PATHS = "$(SRCROOT)/Libraries";
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.fractionallab.NovaExampleApp;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.FreeToken.KitchenSink;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
