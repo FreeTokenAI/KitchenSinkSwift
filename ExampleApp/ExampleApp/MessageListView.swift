@@ -37,12 +37,7 @@ struct MessageListView: View {
                         if let temporaryMessage = chatLoader.temporaryUserMessage {
                             TemporaryUserMessageBubble(content: temporaryMessage)
                         }
-                        
-                        // Display thinking indicator between messages when appropriate
-                        if chatLoader.responseStatus != .waiting {
-                            ThinkingIndicatorView(responseStatus: chatLoader.responseStatus)
-                        }
-                        
+
                         if !chatLoader.streamedResponse.isEmpty {
                             TemporaryAgentMessageBubble(content: chatLoader.streamedResponse)
                         }
