@@ -57,33 +57,70 @@ struct MessageBubble: View {
     let message: FreeToken.Message
 
     var body: some View {
-        // Only show messages with role "user" or "assistant"
-        if message.role == .user || (message.role == .assistant && message.content.isEmpty == false) {
+        // Display all messages including system and tool messages
+        if !message.content.isEmpty {
             HStack {
                 if message.role == .user {
                     Spacer()
                 }
-                VStack(alignment: message.role == .user ? .trailing : .leading) {
+                VStack(alignment: message.role == .user ? .trailing : .leading, spacing: 4) {
+                    // Show role label for system and tool messages
+                    if message.role == .system || message.role == .tool {
+                        Text(message.role == .system ? "System" : "Tool")
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .foregroundColor(messageRoleColor(for: message.role))
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 2)
+                            .background(messageRoleColor(for: message.role).opacity(0.2))
+                            .cornerRadius(8)
+                    }
+
                     Markdown(message.content)
                         .markdownTheme(.bubbleTheme(isUser: message.role == .user))
                         .padding(10)
-                        .background(message.role == .user ? Color.blue : Color(.systemGray5))
+                        .background(messageBackgroundColor(for: message.role))
                         .cornerRadius(16)
                         .textSelection(.enabled)
+
                     if let createdAt = message.createdAt {
                         Text(createdAt.formatted(date: .omitted, time: .shortened))
                             .font(.caption2)
                             .foregroundColor(.gray)
                     }
                 }
-                if message.role == .assistant {
+                if message.role != .user {
                     Spacer()
                 }
             }
             .id(message.id)
         } else {
-            // Return an empty view for other roles (like system messages)
+            // Return an empty view for messages with no content
             EmptyView()
+        }
+    }
+
+    private func messageBackgroundColor(for role: FreeToken.MessageRole) -> Color {
+        switch role {
+        case .user:
+            return Color.blue
+        case .assistant:
+            return Color(.systemGray5)
+        case .system:
+            return Color.orange.opacity(0.2)
+        case .tool:
+            return Color.purple.opacity(0.2)
+        }
+    }
+
+    private func messageRoleColor(for role: FreeToken.MessageRole) -> Color {
+        switch role {
+        case .system:
+            return Color.orange
+        case .tool:
+            return Color.purple
+        default:
+            return Color.primary
         }
     }
 }
