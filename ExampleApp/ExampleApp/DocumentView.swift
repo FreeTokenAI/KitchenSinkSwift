@@ -36,90 +36,145 @@ struct DocumentView: View {
                     .cornerRadius(14)
                     .shadow(color: Color.black.opacity(0.07), radius: 6, x: 0, y: 2)
 
-                    VStack(spacing: 24) {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Label("Create a document to be searched in your App’s vector store.", systemImage: "plus.square.fill")
-                                .font(.callout)
-                                .foregroundColor(.accentColor)
-                            NavigationLink {
-                                DocumentCreateView(
-                                    freeTokenClient: freeTokenClient,
-                                    documentLoader: documentLoader
-                                )
-                            } label: {
+                    LazyVGrid(columns: [
+                        GridItem(.flexible()),
+                        GridItem(.flexible())
+                    ], spacing: 16) {
+                        NavigationLink {
+                            DocumentCreateView(
+                                freeTokenClient: freeTokenClient,
+                                documentLoader: documentLoader
+                            )
+                        } label: {
+                            VStack(spacing: 12) {
+                                Image(systemName: "plus.square.fill")
+                                    .font(.system(size: 36))
+                                    .foregroundColor(.accentColor)
+
                                 Text("Create Document")
-                                    .fontWeight(.semibold)
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(
-                                        LinearGradient(
-                                            gradient: Gradient(colors: [Color.accentColor, Color.accentColor.opacity(0.7)]),
-                                            startPoint: .leading,
-                                            endPoint: .trailing
-                                        )
-                                    )
-                                    .foregroundColor(.white)
-                                    .cornerRadius(12)
-                                    .shadow(color: Color.accentColor.opacity(0.15), radius: 4, x: 0, y: 2)
-                            }
-                            .buttonStyle(PlainButtonStyle())
-                        }
-
-                        VStack(alignment: .leading, spacing: 8) {
-                            Label("Search for a document by ID.", systemImage: "number.square")
-                                .font(.callout)
-                                .foregroundColor(.secondary)
-                            NavigationLink {
-                                DocumentSearchByIDView(
-                                    freeTokenClient: freeTokenClient,
-                                    documentLoader: documentLoader
-                                )
-                            } label: {
-                                Text("Get Document by ID")
-                                    .fontWeight(.semibold)
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(
-                                        LinearGradient(
-                                            gradient: Gradient(colors: [Color.gray.opacity(0.3), Color.gray.opacity(0.15)]),
-                                            startPoint: .leading,
-                                            endPoint: .trailing
-                                        )
-                                    )
+                                    .font(.headline)
                                     .foregroundColor(.primary)
-                                    .cornerRadius(12)
-                                    .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
-                            }
-                            .buttonStyle(PlainButtonStyle())
-                        }
 
-                        VStack(alignment: .leading, spacing: 8) {
-                            Label("Search for document chunks with a query.", systemImage: "magnifyingglass")
-                                .font(.callout)
-                                .foregroundColor(.secondary)
-                            NavigationLink {
-                                DocumentSearchByQueryView(
-                                    freeTokenClient: freeTokenClient,
-                                    documentLoader: documentLoader
-                                )
-                            } label: {
-                                Text("Search Documents")
-                                    .fontWeight(.semibold)
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(
-                                        LinearGradient(
-                                            gradient: Gradient(colors: [Color.blue.opacity(0.8), Color.blue.opacity(0.5)]),
-                                            startPoint: .leading,
-                                            endPoint: .trailing
-                                        )
-                                    )
-                                    .foregroundColor(.white)
-                                    .cornerRadius(12)
-                                    .shadow(color: Color.blue.opacity(0.10), radius: 3, x: 0, y: 1)
+                                Text("Add a new document to your vector store")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                    .multilineTextAlignment(.center)
+                                    .lineLimit(2)
+                                    .fixedSize(horizontal: false, vertical: true)
                             }
-                            .buttonStyle(PlainButtonStyle())
+                            .padding()
+                            .frame(maxWidth: .infinity, minHeight: 160)
+                            .background(Color(.systemBackground))
+                            .cornerRadius(16)
+                            .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 2)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .stroke(Color.accentColor.opacity(0.2), lineWidth: 1)
+                            )
                         }
+                        .buttonStyle(PlainButtonStyle())
+
+                        NavigationLink {
+                            CreatePrivateDocumentStoreView(
+                                freeTokenClient: freeTokenClient,
+                                documentLoader: documentLoader
+                            )
+                        } label: {
+                            VStack(spacing: 12) {
+                                Image(systemName: "lock.shield.fill")
+                                    .font(.system(size: 36))
+                                    .foregroundColor(.green)
+
+                                Text("Private Store")
+                                    .font(.headline)
+                                    .foregroundColor(.primary)
+
+                                Text("Create a secure private document store")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                    .multilineTextAlignment(.center)
+                                    .lineLimit(2)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                            .padding()
+                            .frame(maxWidth: .infinity, minHeight: 160)
+                            .background(Color(.systemBackground))
+                            .cornerRadius(16)
+                            .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 2)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .stroke(Color.green.opacity(0.2), lineWidth: 1)
+                            )
+                        }
+                        .buttonStyle(PlainButtonStyle())
+
+                        NavigationLink {
+                            DocumentSearchByIDView(
+                                freeTokenClient: freeTokenClient,
+                                documentLoader: documentLoader
+                            )
+                        } label: {
+                            VStack(spacing: 12) {
+                                Image(systemName: "number.square")
+                                    .font(.system(size: 36))
+                                    .foregroundColor(.orange)
+
+                                Text("Get by ID")
+                                    .font(.headline)
+                                    .foregroundColor(.primary)
+
+                                Text("Find a specific document using its ID")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                    .multilineTextAlignment(.center)
+                                    .lineLimit(2)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                            .padding()
+                            .frame(maxWidth: .infinity, minHeight: 160)
+                            .background(Color(.systemBackground))
+                            .cornerRadius(16)
+                            .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 2)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .stroke(Color.orange.opacity(0.2), lineWidth: 1)
+                            )
+                        }
+                        .buttonStyle(PlainButtonStyle())
+
+                        NavigationLink {
+                            DocumentSearchByQueryView(
+                                freeTokenClient: freeTokenClient,
+                                documentLoader: documentLoader
+                            )
+                        } label: {
+                            VStack(spacing: 12) {
+                                Image(systemName: "magnifyingglass")
+                                    .font(.system(size: 36))
+                                    .foregroundColor(.blue)
+
+                                Text("Search Documents")
+                                    .font(.headline)
+                                    .foregroundColor(.primary)
+
+                                Text("Query document chunks with semantic search")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                    .multilineTextAlignment(.center)
+                                    .lineLimit(2)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                            .padding()
+                            .frame(maxWidth: .infinity, minHeight: 160)
+                            .background(Color(.systemBackground))
+                            .cornerRadius(16)
+                            .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 2)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .stroke(Color.blue.opacity(0.2), lineWidth: 1)
+                            )
+                        }
+                        .buttonStyle(PlainButtonStyle())
                     }
 
                     if !statusMessage.isEmpty {

@@ -13,12 +13,14 @@ class DocumentViewModel: ObservableObject {
         body: String,
         searchScope: String,
         metadata: String? = nil,
+        privateDocumentStoreId: String? = nil,
         completion: @escaping (Result<FreeToken.Document, Error>) -> Void
-    ) async {
-        await freeTokenClient.client.createDocument(
+    ) async throws {
+        try await freeTokenClient.client.createDocument(
             content: body,
             metadata: metadata,
             searchScope: searchScope,
+            privateDocumentStoreID: privateDocumentStoreId,
             success: { document in
                 completion(.success(document))
             },
@@ -42,11 +44,17 @@ class DocumentViewModel: ObservableObject {
     }
     
     @MainActor
-    func searchDocuments(query: String, searchScope: String? = nil, maxResults: Int? = nil, completion: @escaping (Result<[FreeToken.DocumentChunk], Error>) -> Void
+    func searchDocuments(
+        query: String,
+        searchScope: String? = nil,
+        privateDocumentStoreIds: [String]? = nil,
+        maxResults: Int? = nil,
+        completion: @escaping (Result<[FreeToken.DocumentChunk], Error>) -> Void
     ) async {
         await freeTokenClient.client.searchDocuments(
             query: query,
             searchScope: searchScope,
+            privateDocumentStoreIds: privateDocumentStoreIds,
             maxResults: maxResults,
             success: { results in
                 completion(.success(results.documentChunks))

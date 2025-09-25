@@ -6,6 +6,7 @@ struct DocumentCreateView: View {
     @State private var documentMetadata: String = ""
     @State private var documentBody: String = ""
     @State private var searchScope: String = ""
+    @State private var privateDocumentStoreId: String = ""
     @State private var statusMessage: String = ""
     @State private var showValidationError: Bool = false
     @State private var documentStatus: DocumentStatus = .loading
@@ -26,9 +27,19 @@ struct DocumentCreateView: View {
             ScrollView {
                 VStack(spacing: 28) {
                     VStack(alignment: .leading, spacing: 16) {
-                        DocumentCreateInfoView()
-                            .accessibilityLabel("Document creation information")
-                            .accessibilityAddTraits(.isHeader)
+                        VStack(alignment: .leading, spacing: 12) {
+                            DocumentCreateInfoView()
+                                .accessibilityLabel("Document creation information")
+                                .accessibilityAddTraits(.isHeader)
+
+                            Text("Note: Documents created without a Private Document Store ID are public and can be accessed by anyone.")
+                                .font(.caption)
+                                .foregroundColor(.orange)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 6)
+                                .background(Color.orange.opacity(0.1))
+                                .cornerRadius(8)
+                        }
 
                         DocumentCreateFieldView(
                             title: "User Defined Metadata (optional)",
@@ -59,6 +70,16 @@ struct DocumentCreateView: View {
                         )
                         .accessibilityLabel("Document search scope description")
                         .accessibilityHint("Enter a scope string for document lookup")
+
+                        DocumentCreateFieldView(
+                            title: "Private Document Store ID (optional - leave empty for public document)",
+                            placeholder: "Enter private store ID if you have one",
+                            text: $privateDocumentStoreId,
+                            height: 60,
+                            isMultiline: false
+                        )
+                        .accessibilityLabel("Private document store ID")
+                        .accessibilityHint("Optional: Enter a private store ID to make this document private")
                         
                         FormActionsView(
                             primaryLabel: "Create Document",
@@ -79,6 +100,7 @@ struct DocumentCreateView: View {
                                 documentMetadata = ""
                                 documentBody = ""
                                 searchScope = ""
+                                privateDocumentStoreId = ""
                                 statusMessage = ""
                                 showValidationError = false
                                 documentStatus = .loading
@@ -123,24 +145,30 @@ struct DocumentCreateView: View {
 
     private func createDocument() {
         documentStatus = .loading
-        statusMessage = "Creating Document..."
-        
+        statusMessage = privateDocumentStoreId.isEmpty ? "Creating Public Document..." : "Creating Private Document..."
+
         Task {
-            await documentLoader.createDocument(
-                body: documentBody,
-                searchScope: searchScope,
-                metadata: documentMetadata
-            ) { result in
-                switch result {
-                case .success(let document):
-                    createdDocument = document
-                    statusMessage = "Document created successfully!"
-                    documentStatus = .success
-                case .failure(let error):
-                    createdDocument = nil
-                    statusMessage = "Error: \(error.localizedDescription)"
-                    documentStatus = .error
+            do {
+                try await documentLoader.createDocument(
+                    body: documentBody,
+                    searchScope: searchScope,
+                    metadata: documentMetadata,
+                    privateDocumentStoreId: privateDocumentStoreId.isEmpty ? nil : privateDocumentStoreId
+                ) { result in
+                    switch result {
+                    case .success(let document):
+                        createdDocument = document
+                        statusMessage = privateDocumentStoreId.isEmpty ? "Public document created successfully!" : "Private document created successfully!"
+                        documentStatus = .success
+                    case .failure(let error):
+                        createdDocument = nil
+                        statusMessage = "Error: \(error.localizedDescription)"
+                        documentStatus = .error
+                    }
                 }
+            } catch {
+                statusMessage = "Failed to create document"
+                documentStatus = .error
             }
         }
     }
