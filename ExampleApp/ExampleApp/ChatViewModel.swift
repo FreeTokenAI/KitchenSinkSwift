@@ -2,6 +2,7 @@ import SwiftUI
 import FreeToken
 import CryptoKit
 
+@MainActor
 class ChatViewModel: ObservableObject, @unchecked Sendable {
     @Published var streamedResponse = ""
     @Published var responseStatus: ResponseStatus = .waiting
@@ -14,40 +15,72 @@ class ChatViewModel: ObservableObject, @unchecked Sendable {
     @Published var availableModels: [FreeToken.AIModel] = []
     @Published var modelDownloadStates: [String: FreeToken.ModelDownloadState] = [:]
     @Published var lastTokenUsage: FreeToken.TokenUsage? = nil
+    @Published var toolsEnabled: Bool = false
+    @Published var pendingToolCall: FreeToken.ToolCall? = nil
+    @Published var showToolResponseModal: Bool = false
+    @Published var aiRunConfigEnabled: Bool = false
+    @Published var maxGenerationTokens: Int = 2048
+    @Published var contextWindowSize: Int = 4096
+    @Published var topK: Int = 40
+    @Published var topP: Float = 0.95
+    @Published var temperature: Float = 0.7
+    @Published var documentSearchScope: String = ""
+    @Published var privateDocumentStoreIds: String = ""
+    @Published var additionalContext: String = ""
 
     var freeTokenClient: FreeTokenClient
     private(set) var messageThreadID: String?
     private var currentMessageThread: FreeToken.MessageThread?
     private var runIdentifier: String = UUID().uuidString
+    private var toolResponseContinuation: CheckedContinuation<String, Never>?
+    private var shouldCancelGeneration: Bool = false
+
+    var currentAIRunConfig: FreeToken.AIRunConfig? {
+        guard aiRunConfigEnabled else { return nil }
+        return FreeToken.AIRunConfig(
+            maxGenerationTokens: maxGenerationTokens,
+            contentWindowSize: contextWindowSize,
+            topK: topK,
+            topP: topP,
+            temperature: temperature
+        )
+    }
 
     init(freeTokenClient: FreeTokenClient) {
         self.freeTokenClient = freeTokenClient
 
-        // If already registered, use the existing thread ID
-        if freeTokenClient.registered && freeTokenClient.messageThreadID != nil {
-            self.messageThreadID = freeTokenClient.messageThreadID
-        }
+        // Don't automatically inherit thread ID - each chat should start fresh
+        // The thread will be created when the user sends their first message
     }
 
-    // Prewarm the AI model for this chat session
-    func prewarmChat() async {
+    // Unified prewarm method for AI model - handles all cases
+    nonisolated func prewarmChat(overrideModelCode: String? = nil) async {
+        // Get values from MainActor
+        let (selectedCode, models, threadID, runId, runConfig, toolsEnabled) = await MainActor.run {
+            (selectedModelCode, availableModels, messageThreadID, runIdentifier, currentAIRunConfig, self.toolsEnabled)
+        }
+
+        // Use override model code if provided, otherwise use selected model
+        let modelCode = overrideModelCode ?? selectedCode
+
         // Skip prewarming for cloud-only models
-        if let code = selectedModelCode,
-           let model = availableModels.first(where: { $0.code == code }),
+        if let code = modelCode,
+           let model = models.first(where: { $0.code == code }),
            model.cloudOnly {
             ExampleAppLogger.shared.log("☁️ Skipping prewarm for cloud-only model: \(code)")
             return
         }
 
-        let modelDescription = selectedModelCode ?? "Default Model"
+        let modelDescription = modelCode ?? "Default Model"
 
         // Use thread-specific prewarm if we have an existing thread
-        if let threadID = messageThreadID {
-            ExampleAppLogger.shared.log("🔥 Prewarming AI for existing thread with model: \(modelDescription)", threadID: threadID)
+        if let threadID = threadID {
+            ExampleAppLogger.shared.log("🔥 Prewarming AI for existing thread with model: \(modelDescription), tools: \(toolsEnabled ? "enabled" : "disabled"), config: \(runConfig != nil ? "custom" : "default")", threadID: threadID)
 
             await freeTokenClient.client.prewarmAIForMessageThread(
                 messageThreadID: threadID,
-                modelCode: selectedModelCode,
+                modelCode: modelCode,
+                runConfig: runConfig,
                 success: {
                     ExampleAppLogger.shared.log("✅ Successfully prewarmed AI for thread with model: \(modelDescription)", threadID: threadID)
                 },
@@ -56,11 +89,12 @@ class ChatViewModel: ObservableObject, @unchecked Sendable {
                 }
             )
         } else {
-            ExampleAppLogger.shared.log("🔥 Prewarming AI for chat with runIdentifier: \(runIdentifier), model: \(modelDescription)")
+            ExampleAppLogger.shared.log("🔥 Prewarming AI for chat with runIdentifier: \(runId), model: \(modelDescription), tools: \(toolsEnabled ? "enabled" : "disabled"), config: \(runConfig != nil ? "custom" : "default")")
 
             await freeTokenClient.client.prewarmAIFor(
-                runIdentifier: runIdentifier,
-                modelCode: selectedModelCode,
+                runIdentifier: runId,
+                modelCode: modelCode,
+                runConfig: runConfig,
                 success: {
                     ExampleAppLogger.shared.log("✅ Successfully prewarmed AI for chat with model: \(modelDescription)")
                 },
@@ -71,50 +105,8 @@ class ChatViewModel: ObservableObject, @unchecked Sendable {
         }
     }
 
-    // Prewarm the AI model with specific model code
-    func prewarmChatWithModel(modelCode: String?) async {
-        // Skip prewarming for cloud-only models
-        if let code = modelCode,
-           let model = availableModels.first(where: { $0.code == code }),
-           model.cloudOnly {
-            ExampleAppLogger.shared.log("☁️ Skipping prewarm for cloud-only model: \(code)")
-            return
-        }
-
-        let modelName = modelCode ?? "Default"
-
-        // Use thread-specific prewarm if we have an existing thread (e.g., switching models mid-conversation)
-        if let threadID = messageThreadID {
-            ExampleAppLogger.shared.log("🔥 Prewarming AI for existing thread with model: \(modelName)", threadID: threadID)
-
-            await freeTokenClient.client.prewarmAIForMessageThread(
-                messageThreadID: threadID,
-                modelCode: modelCode,
-                success: {
-                    ExampleAppLogger.shared.log("✅ Successfully prewarmed AI for thread with model: \(modelName)", threadID: threadID)
-                },
-                error: { error in
-                    ExampleAppLogger.shared.log("⚠️ Failed to prewarm AI for thread with model \(modelName): \(error.message)", threadID: threadID)
-                }
-            )
-        } else {
-            ExampleAppLogger.shared.log("🔥 Prewarming AI for model: \(modelName) with runIdentifier: \(runIdentifier)")
-
-            await freeTokenClient.client.prewarmAIFor(
-                runIdentifier: runIdentifier,
-                modelCode: modelCode,
-                success: {
-                    ExampleAppLogger.shared.log("✅ Successfully prewarmed AI for model: \(modelName)")
-                },
-                error: { error in
-                    ExampleAppLogger.shared.log("⚠️ Failed to prewarm AI for model \(modelName): \(error.message)")
-                }
-            )
-        }
-    }
-
     // Load available AI models
-    func loadAIModels() async {
+    nonisolated func loadAIModels() async {
         await freeTokenClient.client.listAIModels(
             success: { models in
                 await MainActor.run {
@@ -144,41 +136,118 @@ class ChatViewModel: ObservableObject, @unchecked Sendable {
         ExampleAppLogger.shared.log("🔄 Reset runIdentifier to: \(runIdentifier)")
     }
 
-    func createMessageThread(newMessage: String? = nil) async -> FreeToken.MessageThread? {
-        // Use the global message thread from FreeTokenClient if available AND we don't already have a different local thread
-        if let existingThreadID = freeTokenClient.messageThreadID,
-           self.messageThreadID == nil {
-            self.messageThreadID = existingThreadID
-            ExampleAppLogger.shared.log("✅ Using existing FreeToken thread", threadID: self.messageThreadID)
-            // Load all messages from the existing thread
-            await loadMessagesFromThread(threadID: existingThreadID)
-            return nil // Return nil as we're using existing thread
+    // Toggle tools and re-prewarm with proper tool access
+    func toggleTools() async {
+        // Note: toolsEnabled is already toggled by the Toggle UI control
+        // We just need to handle the side effects
+
+        // Register or unregister tools based on current state
+        if toolsEnabled {
+            await registerWeatherTool()
+        } else {
+            await freeTokenClient.client.removeAllToolDefinitions()
         }
 
-        // If we already have a thread ID, don't create a new one
-        if self.messageThreadID != nil {
-            ExampleAppLogger.shared.log("✅ Already have a thread ID", threadID: self.messageThreadID)
-            return nil
+        // Reset run identifier for new session
+        resetRunIdentifier()
+
+        // Re-prewarm with updated tool access
+        await prewarmChat()
+    }
+
+    // Handle AIRunConfig changes and re-prewarm
+    func aiRunConfigChanged() async {
+        // Reset run identifier for new session
+        resetRunIdentifier()
+
+        // Re-prewarm with updated config
+        await prewarmChat()
+    }
+
+    // Register the fetch_weather tool
+    nonisolated func registerWeatherTool() async {
+        let weatherToolDefinition = """
+        {
+            "type": "function",
+            "function": {
+                "name": "fetch_weather",
+                "description": "Get the current weather for a specific location",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "location": {
+                            "type": "string",
+                            "description": "The city and state, e.g. San Francisco, CA"
+                        },
+                        "unit": {
+                            "type": "string",
+                            "enum": ["celsius", "fahrenheit"],
+                            "description": "The temperature unit to use"
+                        }
+                    },
+                    "required": ["location"]
+                }
+            }
+        }
+        """
+
+        await freeTokenClient.client.addToolDefinition(name: "fetch_weather", definitionJSON: weatherToolDefinition)
+        ExampleAppLogger.shared.log("🔧 Registered fetch_weather tool")
+    }
+
+
+    // Handle tool calls from the AI
+    nonisolated func handleToolCalls(_ toolCalls: [FreeToken.ToolCall]) async -> String {
+        var results: [String] = []
+
+        for toolCall in toolCalls {
+            ExampleAppLogger.shared.log("🔧 Processing tool call: \(toolCall.name)")
+
+            // Show modal and wait for user response
+            let response = await withCheckedContinuation { continuation in
+                Task { @MainActor in
+                    self.toolResponseContinuation = continuation
+                    self.pendingToolCall = toolCall
+                    self.showToolResponseModal = true
+                }
+            }
+
+            results.append(response)
         }
 
+        return results.joined(separator: "\n\n")
+    }
+
+    // Submit tool response from modal
+    func submitToolResponse(_ response: String) {
+        toolResponseContinuation?.resume(returning: response)
+        toolResponseContinuation = nil
+        pendingToolCall = nil
+        showToolResponseModal = false
+    }
+
+    nonisolated func createMessageThread(newMessage: String? = nil) async -> FreeToken.MessageThread? {
+        // Get values from MainActor
+        let (client) = await MainActor.run {
+            (freeTokenClient)
+        }
+        
         // Otherwise create a new thread
         return await withCheckedContinuation { continuation in
             Task {
-                await freeTokenClient.client.createMessageThread(
+                await client.client.createMessageThread(
                     success: { messageThread in
                         Task { @MainActor in
                             self.messageThreadID = messageThread.id
                             self.currentMessageThread = messageThread
                             self.messages = messageThread.messages
                             // Also update FreeTokenClient's thread ID
-                            self.freeTokenClient.setMessageThreadID(messageThread.id)
                             self.isLoading = false
                         }
                         ExampleAppLogger.shared.log("✅ Successfully created FreeToken thread", threadID: messageThread.id)
                         continuation.resume(returning: messageThread)
                     },
                     error: { error in
-                        ExampleAppLogger.shared.log("❌ Failed to create FreeToken thread with Error: \(error.message)", threadID: self.messageThreadID)
                         Task {
                             await MainActor.run {
                                 self.lastError = "Failed to create thread: \(error.message)"
@@ -193,8 +262,10 @@ class ChatViewModel: ObservableObject, @unchecked Sendable {
     }
 
     // Add message and run thread to get AI response
-    func sendMessage(message: String, isThreadFirstMessage: Bool) async {
-        guard let threadID = messageThreadID else {
+    nonisolated func sendMessage(message: String, isThreadFirstMessage: Bool) async {
+        let threadID = await MainActor.run { messageThreadID }
+
+        guard let threadID = threadID else {
             await MainActor.run {
                 self.lastError = "No thread ID available"
             }
@@ -245,18 +316,40 @@ class ChatViewModel: ObservableObject, @unchecked Sendable {
         )
     }
 
-    private func runThread() async {
-        guard let threadID = messageThreadID else { return }
+    private nonisolated func runThread() async {
+        let threadID = await MainActor.run { messageThreadID }
+
+        guard let threadID = threadID else { return }
 
         await MainActor.run {
             responseStatus = .streamingTokens
             streamedResponse = ""
+            shouldCancelGeneration = false // Reset cancellation flag
         }
+
+        // Create tool callback if tools are enabled
+        let (toolsEnabled, runId, modelCode, runConfig, docSearchScope, privateDocStoreIds, additionalCtx) = await MainActor.run {
+            (self.toolsEnabled, self.runIdentifier, self.selectedModelCode, self.currentAIRunConfig,
+             self.documentSearchScope.isEmpty ? nil : self.documentSearchScope,
+             self.privateDocumentStoreIds.isEmpty ? nil : self.privateDocumentStoreIds.split(separator: ",").map { String($0.trimmingCharacters(in: .whitespaces)) },
+             self.additionalContext)
+        }
+
+        let toolCallback: (([FreeToken.ToolCall]) async -> String)? = toolsEnabled ? { toolCalls in
+            await self.handleToolCalls(toolCalls)
+        } : nil
+
+        let toolAccess: [FreeToken.ToolRunMask] = toolsEnabled ? [.allowAll] : [.denyAll]
 
         await freeTokenClient.client.runMessageThread(
             id: threadID,
-            runIdentifier: runIdentifier,
-            modelCode: selectedModelCode,
+            runIdentifier: runId,
+            documentSearchScope: docSearchScope,
+            privateDocumentStoreIds: privateDocStoreIds,
+            aiRunConfig: runConfig,
+            modelCode: modelCode,
+            toolAccess: toolAccess,
+            additionalContext: additionalCtx,
             success: { message in
                 ExampleAppLogger.shared.log("✅ Received AI response", threadID: threadID)
                 await MainActor.run {
@@ -278,6 +371,16 @@ class ChatViewModel: ObservableObject, @unchecked Sendable {
                 }
             },
             chatStatusStream: { token, status in
+                // Check if cancellation is requested and throw exception to cancel
+                let shouldCancel = await MainActor.run { self.shouldCancelGeneration }
+                if shouldCancel {
+                    ExampleAppLogger.shared.log("🛑 Throwing cancellation exception", threadID: threadID)
+                    struct CancellationError: Error {
+                        let message = "User cancelled generation"
+                    }
+                    throw CancellationError()
+                }
+
                 // Handle streaming tokens
                 if let token = token {
                     await MainActor.run {
@@ -319,21 +422,55 @@ class ChatViewModel: ObservableObject, @unchecked Sendable {
                         self.responseStatus = .failed
                         self.currentChatStatus = nil // Clear status on failure
                     }
+                case .new_message_created:
+                    ExampleAppLogger.shared.log("📝 New message created - fetching updated thread", threadID: threadID)
+
+                    // Clear the streamed response since it's now persisted
+                    await MainActor.run {
+                        self.streamedResponse = ""
+                        self.currentChatStatus = "Loading messages..."
+                    }
+
+                    // Fetch the updated message thread to get all persisted messages with IDs
+                    await self.freeTokenClient.client.getMessageThread(
+                        id: threadID,
+                        success: { messageThread in
+                            await MainActor.run {
+                                // Update messages with the complete thread including new message
+                                self.messages = messageThread.messages
+                                ExampleAppLogger.shared.log("✅ Loaded \(messageThread.messages.count) messages from updated thread", threadID: threadID)
+
+                                // Update status to show we're continuing with a new message
+                                self.currentChatStatus = "AI is continuing..."
+                                self.responseStatus = .streamingTokens
+                            }
+                        },
+                        error: { error in
+                            ExampleAppLogger.shared.log("❌ Failed to load updated thread: \(error.message)", threadID: threadID)
+                            await MainActor.run {
+                                self.lastError = "Failed to load messages: \(error.message)"
+                            }
+                        }
+                    )
                 default:
                     break
                 }
-            }
+            },
+            toolCallback: toolCallback
         )
     }
 
-    func fetchMessages() async {
+    nonisolated func fetchMessages() async {
         // Messages are stored locally in the messages array
         // No need to fetch from API as they're updated when we add/run
-        ExampleAppLogger.shared.log("📚 Current message count: \(messages.count)", threadID: messageThreadID)
+        let (count, threadID) = await MainActor.run {
+            (messages.count, messageThreadID)
+        }
+        ExampleAppLogger.shared.log("📚 Current message count: \(count)", threadID: threadID)
     }
 
     // Load all messages from a thread (including system messages)
-    private func loadMessagesFromThread(threadID: String) async {
+    nonisolated func loadMessagesFromThread(threadID: String) async {
         await freeTokenClient.client.getMessageThread(
             id: threadID,
             success: { messageThread in
@@ -353,12 +490,16 @@ class ChatViewModel: ObservableObject, @unchecked Sendable {
         )
     }
 
-    func deleteThread() async {
-        guard let threadId = messageThreadID else { return }
+    nonisolated func deleteThread() async {
+        let (threadId, client) = await MainActor.run {
+            (messageThreadID, freeTokenClient)
+        }
+
+        guard let threadId = threadId else { return }
 
         await MainActor.run { isLoading = true }
 
-        freeTokenClient.client.deleteMessageThread(
+        client.client.deleteMessageThread(
             id: threadId,
             success: { _ in
                 Task { @MainActor [weak self] in
@@ -371,8 +512,6 @@ class ChatViewModel: ObservableObject, @unchecked Sendable {
                     self?.responseStatus = .waiting
                     self?.currentChatStatus = nil
                     self?.isLoading = false
-                    // Clear the global thread ID in FreeTokenClient
-                    self?.freeTokenClient.clearMessageThreadID()
                 }
             },
             error: { error in
@@ -387,16 +526,20 @@ class ChatViewModel: ObservableObject, @unchecked Sendable {
     }
 
     // Helper method to delete a message thread by ID (used by ChatView)
-    func deleteMessageThread(threadID: String?) async -> Bool {
+    nonisolated func deleteMessageThread(threadID: String?) async -> Bool {
         guard let threadId = threadID else { return false }
 
+        let (currentThreadID, client) = await MainActor.run {
+            (self.messageThreadID, self.freeTokenClient)
+        }
+
         return await withCheckedContinuation { continuation in
-            freeTokenClient.client.deleteMessageThread(
+            client.client.deleteMessageThread(
                 id: threadId,
                 success: { _ in
                     ExampleAppLogger.shared.log("✅ Successfully deleted thread", threadID: threadId)
                     // Clear the thread ID from both ChatViewModel and FreeTokenClient
-                    if threadId == self.messageThreadID {
+                    if threadId == currentThreadID {
                         Task { @MainActor in
                             self.messageThreadID = nil
                             self.currentMessageThread = nil
@@ -407,10 +550,7 @@ class ChatViewModel: ObservableObject, @unchecked Sendable {
                             self.currentChatStatus = nil
                         }
                     }
-                    // Always clear the global thread ID if it matches
-                    if threadId == self.freeTokenClient.messageThreadID {
-                        self.freeTokenClient.clearMessageThreadID()
-                    }
+
                     continuation.resume(returning: true)
                 },
                 error: { error in
@@ -422,8 +562,10 @@ class ChatViewModel: ObservableObject, @unchecked Sendable {
     }
 
     // Add a message to the current thread (helper for ChatView compatibility)
-    func addMessageToThread(newMessage: String) async -> FreeToken.Message? {
-        guard let threadID = messageThreadID else { return nil }
+    nonisolated func addMessageToThread(newMessage: String) async -> FreeToken.Message? {
+        let threadID = await MainActor.run { messageThreadID }
+
+        guard let threadID = threadID else { return nil }
 
         return await withCheckedContinuation { continuation in
             Task {
@@ -447,34 +589,119 @@ class ChatViewModel: ObservableObject, @unchecked Sendable {
     }
 
     // Run the message thread and return the response (helper for ChatView compatibility)
-    func runMessageThread(id: String?) async -> FreeToken.Message? {
-        guard let threadId = id ?? messageThreadID else { return nil }
+    nonisolated func runMessageThread(id: String?) async -> FreeToken.Message? {
+        let (currentThreadID, toolsEnabled, runId, modelCode, runConfig, docSearchScope, privateDocStoreIds, additionalCtx) = await MainActor.run {
+            (messageThreadID, self.toolsEnabled, runIdentifier, selectedModelCode, currentAIRunConfig,
+             self.documentSearchScope.isEmpty ? nil : self.documentSearchScope,
+             self.privateDocumentStoreIds.isEmpty ? nil : self.privateDocumentStoreIds.split(separator: ",").map { String($0.trimmingCharacters(in: .whitespaces)) },
+             self.additionalContext)
+        }
+
+        guard let threadId = id ?? currentThreadID else { return nil }
+
+        // Reset streaming state for retry
+        await MainActor.run {
+            self.responseStatus = .streamingTokens
+            self.streamedResponse = ""
+            self.shouldCancelGeneration = false
+        }
+
+        // Create tool callback if tools are enabled
+        let toolCallback: (([FreeToken.ToolCall]) async -> String)? = toolsEnabled ? { toolCalls in
+            await self.handleToolCalls(toolCalls)
+        } : nil
+
+        let toolAccess: [FreeToken.ToolRunMask] = toolsEnabled ? [.allowAll] : [.denyAll]
 
         return await withCheckedContinuation { continuation in
             Task {
                 await freeTokenClient.client.runMessageThread(
                     id: threadId,
-                    runIdentifier: runIdentifier,
-                    modelCode: selectedModelCode,
+                    runIdentifier: runId,
+                    documentSearchScope: docSearchScope,
+                    privateDocumentStoreIds: privateDocStoreIds,
+                    aiRunConfig: runConfig,
+                    modelCode: modelCode,
+                    toolAccess: toolAccess,
+                    additionalContext: additionalCtx,
                     success: { message in
                         await MainActor.run {
                             self.messages.append(message)
+                            // Clear the streamed response to prevent duplicate display
+                            self.streamedResponse = ""
                             // Capture token usage stats if available
                             self.lastTokenUsage = message.tokenUsage
+                            self.responseStatus = .streamEnded
                         }
                         continuation.resume(returning: message)
                     },
                     error: { error in
                         ExampleAppLogger.shared.log("❌ Failed to run thread: \(error.message)", threadID: threadId)
+                        await MainActor.run {
+                            self.lastError = "Failed to get response: \(error.message)"
+                            self.responseStatus = .failed
+                        }
                         continuation.resume(returning: nil)
-                    }
+                    },
+                    chatStatusStream: { token, status in
+                        // Check if cancellation is requested
+                        let shouldCancel = await MainActor.run { self.shouldCancelGeneration }
+                        if shouldCancel {
+                            ExampleAppLogger.shared.log("🛑 Throwing cancellation exception", threadID: threadId)
+                            struct CancellationError: Error {
+                                let message = "User cancelled generation"
+                            }
+                            throw CancellationError()
+                        }
+
+                        // Handle streaming tokens
+                        if let token = token {
+                            await MainActor.run {
+                                self.streamedResponse += token
+                            }
+                        }
+
+                        // Handle status updates
+                        switch status {
+                        case .starting:
+                            ExampleAppLogger.shared.log("🎬 Starting AI generation", threadID: threadId)
+                            await MainActor.run {
+                                self.currentChatStatus = "Starting AI generation..."
+                            }
+                        case .streaming_tokens:
+                            await MainActor.run {
+                                self.currentChatStatus = nil
+                                self.responseStatus = .streamingTokens
+                            }
+                        case .stream_ended:
+                            ExampleAppLogger.shared.log("✅ Stream ended", threadID: threadId)
+                            await MainActor.run {
+                                self.responseStatus = .streamEnded
+                            }
+                        case .failed:
+                            ExampleAppLogger.shared.log("❌ Stream failed", threadID: threadId)
+                            await MainActor.run {
+                                self.responseStatus = .failed
+                            }
+                        case .new_message_created:
+                            ExampleAppLogger.shared.log("📝 New message created - fetching updated thread", threadID: threadId)
+                            await MainActor.run {
+                                self.streamedResponse = ""
+                            }
+                            // Fetch updated thread
+                            await self.loadMessagesFromThread(threadID: threadId)
+                        default:
+                            break
+                        }
+                    },
+                    toolCallback: toolCallback
                 )
             }
         }
     }
 
     // Set the last error message
-    func setLastError(_ error: String) {
+    func setLastError(_ error: String?) {
         Task { @MainActor in
             self.lastError = error
         }
@@ -484,12 +711,16 @@ class ChatViewModel: ObservableObject, @unchecked Sendable {
     func clearMessageThreadID() {
         self.messageThreadID = nil
         self.currentMessageThread = nil
-        // Also clear the global thread ID
-        self.freeTokenClient.clearMessageThreadID()
+    }
+
+    // Cancel the current AI generation
+    func cancelGeneration() {
+        shouldCancelGeneration = true
+        ExampleAppLogger.shared.log("🛑 Cancellation requested")
     }
 
     // Generate a title for the chat thread using local completion
-    func generateLocalCompletion(userMessage: String) async -> String? {
+    nonisolated func generateLocalCompletion(userMessage: String) async -> String? {
         // For now, return a simple title based on the first message
         // In a real implementation, this would use the AI model to generate a title
         let words = userMessage.split(separator: " ").prefix(5).joined(separator: " ")

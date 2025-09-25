@@ -150,7 +150,14 @@ struct MessageListView: View {
                     .background(Color.red.opacity(0.2))
                     .foregroundColor(.red)
                     .cornerRadius(16)
-                Button { Task { await retryLastMessage() }
+
+                // Only show retry button if last message is from user
+                if let lastMessage = chatLoader.messages.last,
+                   lastMessage.role == .user {
+                    Button {
+                        Task {
+                            await retryLastMessage()
+                        }
                     } label: {
                         Label("Retry Message", systemImage: "arrow.counterclockwise")
                             .foregroundColor(.blue)
@@ -158,6 +165,7 @@ struct MessageListView: View {
                     .padding(10)
                     .background(Color.blue.opacity(0.1))
                     .cornerRadius(16)
+                }
             }
             Spacer()
         }
@@ -165,6 +173,15 @@ struct MessageListView: View {
     }
     
     private func retryLastMessage() async {
+        // Clear the error and any partial streamed response before retrying
+        chatLoader.setLastError(nil)
+        chatLoader.streamedResponse = ""
+
+        // Reload the thread messages to clear any partial responses not in the thread
+        if let threadID = chatThread?.freeTokenThreadId {
+            await chatLoader.loadMessagesFromThread(threadID: threadID)
+        }
+
         await runThreadWith(chatLoader: chatLoader,
             threadID: chatThread?.freeTokenThreadId,
             onUpdate: { content, date in
