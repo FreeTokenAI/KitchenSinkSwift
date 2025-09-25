@@ -6,6 +6,7 @@ struct DocumentSearchByQueryView: View {
     @StateObject private var documentLoader: DocumentViewModel
     @State private var documentQuery: String = ""
     @State private var documentSearchScope: String = ""
+    @State private var privateDocumentStoreIds: String = ""
     @State private var documentMaxResultsString: String = ""
     @State private var statusMessage: String = ""
     @State private var searchResults: [FreeToken.DocumentChunk] = []
@@ -27,6 +28,7 @@ struct DocumentSearchByQueryView: View {
     private var canClear: Bool {
         !documentQuery.isEmpty ||
         !documentSearchScope.isEmpty ||
+        !privateDocumentStoreIds.isEmpty ||
         !documentMaxResultsString.isEmpty ||
         !searchResults.isEmpty ||
         !statusMessage.isEmpty
@@ -55,9 +57,17 @@ struct DocumentSearchByQueryView: View {
             ScrollView {
                 VStack(spacing: 28) {
                     VStack(alignment: .leading, spacing: 14) {
-                        Text("Enter a query to search for document chunks in your app’s vector store. Optionally, specify a search scope and max results.")
+                        Text("Enter a query to search for document chunks in your app's vector store. Optionally, specify a search scope, private store IDs, and max results.")
                             .font(.callout)
                             .foregroundColor(.secondary)
+
+                        Text("Note: Leave Private Store IDs empty to search only public documents.")
+                            .font(.caption)
+                            .foregroundColor(.orange)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 6)
+                            .background(Color.orange.opacity(0.1))
+                            .cornerRadius(8)
                     }
                     .padding()
                     .background(
@@ -96,6 +106,18 @@ struct DocumentSearchByQueryView: View {
                                 .padding(8)
                                 .background(Color.clear)
                                 .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.accentColor.opacity(0.3), lineWidth: 1.5))
+                                .autocapitalization(.none)
+                                .disableAutocorrection(true)
+                        }
+
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("Private Document Store IDs (optional, comma-separated)")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                            TextField("store-id-1, store-id-2", text: $privateDocumentStoreIds)
+                                .padding(8)
+                                .background(Color.clear)
+                                .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.green.opacity(0.3), lineWidth: 1.5))
                                 .autocapitalization(.none)
                                 .disableAutocorrection(true)
                         }
@@ -156,8 +178,17 @@ struct DocumentSearchByQueryView: View {
         documentStatus = .loading
         statusMessage = "Searching..."
         let maxResults = Int(documentMaxResultsString) ?? 10
-        
-        await documentLoader.searchDocuments(query: trimmed, searchScope: documentSearchScope, maxResults: maxResults) { result in
+
+        // Parse comma-separated store IDs
+        let storeIds: [String]? = privateDocumentStoreIds.isEmpty ? nil :
+            privateDocumentStoreIds.split(separator: ",").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
+
+        await documentLoader.searchDocuments(
+            query: trimmed,
+            searchScope: documentSearchScope,
+            privateDocumentStoreIds: storeIds,
+            maxResults: maxResults
+        ) { result in
             switch result {
             case .success(let chunks):
                 searchResults = chunks
@@ -178,6 +209,7 @@ struct DocumentSearchByQueryView: View {
     private func clearFields() {
         documentQuery = ""
         documentSearchScope = ""
+        privateDocumentStoreIds = ""
         documentMaxResultsString = ""
         searchResults = []
         statusMessage = ""
