@@ -18,9 +18,6 @@ class FreeTokenClient: ObservableObject {
     @Published var isDownloadingModel = false
     @Published var modelDownloadProgress: Double = 0.0
 
-    // Message thread management
-    private(set) var messageThreadID: String?
-
     var client: FreeToken {
         return FreeToken.shared
     }
@@ -114,7 +111,7 @@ class FreeTokenClient: ObservableObject {
 
     private func completeRegistration() async {
         // Create initial message thread for the app
-        await createMessageThread()
+//        await createMessageThread()
 
         await MainActor.run {
             self.registered = true
@@ -126,31 +123,4 @@ class FreeTokenClient: ObservableObject {
         ExampleAppLogger.shared.log("✅ Successfully registered device and completed setup")
     }
 
-    func createMessageThread() async -> FreeToken.MessageThread? {
-        return await withCheckedContinuation { continuation in
-            Task {
-                await client.createMessageThread(
-                    success: { messageThread in
-                        self.messageThreadID = messageThread.id
-                        ExampleAppLogger.shared.log("✅ Successfully created FreeToken thread", threadID: self.messageThreadID)
-                        continuation.resume(returning: messageThread)
-                    },
-                    error: { error in
-                        ExampleAppLogger.shared.log("❌ Failed to create FreeToken thread with Error: \(error.message)", threadID: self.messageThreadID)
-                        continuation.resume(returning: nil)
-                    }
-                )
-            }
-        }
-    }
-
-    // Clear the message thread ID (used when resetting/deleting chat)
-    func clearMessageThreadID() {
-        self.messageThreadID = nil
-    }
-
-    // Set the message thread ID (used when creating new thread in ChatViewModel)
-    func setMessageThreadID(_ id: String?) {
-        self.messageThreadID = id
-    }
 }

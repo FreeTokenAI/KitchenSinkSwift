@@ -130,7 +130,8 @@ struct InputMessageView: View {
     let isLoading: Bool
     let disabledMessage: String
     let sendMessage: () -> Void
-    
+    let cancelGeneration: (() -> Void)?
+
     var body: some View {
         VStack(spacing: 8) {
             // Show disabled message if there's any AI operation active
@@ -140,19 +141,25 @@ struct InputMessageView: View {
                     .foregroundColor(.orange)
                     .padding(.horizontal)
             }
-            
+
             HStack {
                 TextField("Type a message...", text: $inputMessage, axis: .vertical)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                     .disabled(isLoading)
-                
-                Button(action: sendMessage) {
-                    Image(systemName: "arrow.up.circle.fill")
+
+                Button(action: {
+                    if isLoading {
+                        cancelGeneration?()
+                    } else {
+                        sendMessage()
+                    }
+                }) {
+                    Image(systemName: isLoading ? "xmark.circle.fill" : "arrow.up.circle.fill")
                         .resizable()
                         .frame(width: 30, height: 30)
-                        .foregroundColor(inputMessage.isEmpty || isLoading ? .gray : .blue)
+                        .foregroundColor(isLoading ? .red : (inputMessage.isEmpty ? .gray : .blue))
                 }
-                .disabled(inputMessage.isEmpty || isLoading)
+                .disabled(!isLoading && inputMessage.isEmpty)
             }
             .padding()
         }

@@ -10,6 +10,11 @@ struct ChatView: View {
     @State private var chatThread: ChatThread? = nil
     @ObservedObject var chatLoader: ChatViewModel
     @State private var isCreatingThread = false
+    @FocusState private var focusedConfigField: ConfigField?
+
+    private enum ConfigField {
+        case maxTokens, contextSize, temperature, topK, topP, documentSearch, privateStores, additionalContext
+    }
     
     private struct ScrollState {
         var shouldScrollToBottom: Bool = false
@@ -175,20 +180,35 @@ struct ChatView: View {
 
                 InputMessageView(
                     inputMessage: $inputMessage,
-                    isLoading: chatLoader.isLoading,
+                    isLoading: chatLoader.responseStatus == .streamingTokens || chatLoader.currentChatStatus != nil,
                     disabledMessage: disabledInputMessage,
-                ) {
-                    let message = inputMessage
-                    inputMessage = ""  // Clear immediately
-                    Task {
-                        await sendMessage(message)
+                    sendMessage: {
+                        let message = inputMessage
+                        inputMessage = ""  // Clear immediately
+                        Task {
+                            await sendMessage(message)
+                        }
+                    },
+                    cancelGeneration: {
+                        chatLoader.cancelGeneration()
                     }
-                }
+                )
             }
-            .navigationTitle(chatThread?.title ?? "New Chat")
+            .navigationTitle("AI Chat")
             .toolbar { toolbarContent }
             .confirmationDialog("Resetting Chat Options", isPresented: $showDeleteResetDialog, titleVisibility: .visible) {
                 confirmationDialogContent()
+            }
+            .sheet(isPresented: $chatLoader.showToolResponseModal) {
+                if let toolCall = chatLoader.pendingToolCall {
+                    ToolCallResponseView(
+                        toolCall: toolCall,
+                        isPresented: $chatLoader.showToolResponseModal,
+                        onSubmit: { response in
+                            chatLoader.submitToolResponse(response)
+                        }
+                    )
+                }
             }
             .onAppear {
                 handleOnAppear()
@@ -212,18 +232,19 @@ struct ChatView: View {
     private func modelSelectorView() -> some View {
         let isGenerating = chatLoader.responseStatus == .streamingTokens || chatLoader.isLoading || chatLoader.currentChatStatus != nil
 
-        HStack {
-            Text("AI Model:")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
+        VStack(spacing: 12) {
+            HStack {
+                Text("AI Model:")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
 
-            Menu {
+                Menu {
                 Button(action: {
                     chatLoader.selectedModelCode = nil
                     // Regenerate UUID and prewarm for default model
                     chatLoader.resetRunIdentifier()
                     Task {
-                        await chatLoader.prewarmChatWithModel(modelCode: nil)
+                        await chatLoader.prewarmChat()
                     }
                 }) {
                     Label("Default Agent Model", systemImage: chatLoader.selectedModelCode == nil ? "checkmark" : "")
@@ -238,7 +259,7 @@ struct ChatView: View {
                         chatLoader.resetRunIdentifier()
                         if !model.cloudOnly {
                             Task {
-                                await chatLoader.prewarmChatWithModel(modelCode: model.code)
+                                await chatLoader.prewarmChat(overrideModelCode: model.code)
                             }
                         }
                     }) {
@@ -309,8 +330,228 @@ struct ChatView: View {
 
             Spacer()
         }
-        .padding(.horizontal)
-        .padding(.vertical, 8)
+
+        // Document Search and Context Settings - always visible
+        VStack(alignment: .leading, spacing: 8) {
+                // Document Search Scope
+                HStack {
+                    Text("Document Search Scope:")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .frame(width: 160, alignment: .leading)
+                    TextField("Search scope...", text: $chatLoader.documentSearchScope)
+                        .textFieldStyle(.roundedBorder)
+                        .font(.caption)
+                        .focused($focusedConfigField, equals: .documentSearch)
+                }
+
+                // Private Document Store IDs
+                HStack {
+                    Text("Private Document Store IDs:")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .frame(width: 160, alignment: .leading)
+                    TextField("Store IDs (comma-separated)...", text: $chatLoader.privateDocumentStoreIds)
+                        .textFieldStyle(.roundedBorder)
+                        .font(.caption)
+                        .focused($focusedConfigField, equals: .privateStores)
+                }
+
+                // Additional Context
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Additional Context:")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    TextEditor(text: $chatLoader.additionalContext)
+                        .font(.caption)
+                        .frame(minHeight: 60, maxHeight: 100)
+                        .padding(4)
+                        .background(Color(.systemGray6))
+                        .cornerRadius(4)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 4)
+                                .stroke(Color(.systemGray4), lineWidth: 0.5)
+                        )
+                        .focused($focusedConfigField, equals: .additionalContext)
+                }
+            }
+            .padding(.vertical, 4)
+            .padding(.horizontal, 8)
+            .background(Color(.systemGray6).opacity(0.3))
+            .cornerRadius(8)
+
+        // Tools Toggle - show for new chats or chats with no messages
+        if chatLoader.messages.isEmpty && !isGenerating {
+            HStack {
+                Text("Tools:")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+
+                Toggle(isOn: $chatLoader.toolsEnabled) {
+                    Text(chatLoader.toolsEnabled ? "Enabled" : "Disabled")
+                        .font(.subheadline)
+                        .foregroundColor(chatLoader.toolsEnabled ? .green : .secondary)
+                }
+                .toggleStyle(SwitchToggleStyle(tint: .accentColor))
+                .onChange(of: chatLoader.toolsEnabled) { oldValue, newValue in
+                    Task {
+                        await chatLoader.toggleTools()
+                    }
+                }
+
+                Spacer()
+
+                if chatLoader.toolsEnabled {
+                    HStack(spacing: 4) {
+                        Image(systemName: "wrench.and.screwdriver.fill")
+                            .font(.system(size: 12))
+                            .foregroundColor(.orange)
+                        Text("fetch_weather")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+
+            // AIRunConfig Toggle and Settings - show for new chats or chats with no messages
+            VStack(alignment: .leading, spacing: 10) {
+                HStack {
+                    Text("AI Run Config:")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+
+                    Toggle(isOn: $chatLoader.aiRunConfigEnabled) {
+                        Text(chatLoader.aiRunConfigEnabled ? "Custom" : "Default")
+                            .font(.subheadline)
+                            .foregroundColor(chatLoader.aiRunConfigEnabled ? .blue : .secondary)
+                    }
+                    .toggleStyle(SwitchToggleStyle(tint: .accentColor))
+                    .onChange(of: chatLoader.aiRunConfigEnabled) { oldValue, newValue in
+                        Task {
+                            await chatLoader.aiRunConfigChanged()
+                        }
+                    }
+
+                    Spacer()
+                }
+
+                // Show config options when enabled
+                if chatLoader.aiRunConfigEnabled {
+                    VStack(alignment: .leading, spacing: 8) {
+                        // Max Generation Tokens
+                        HStack {
+                            Text("Max Tokens:")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                                .frame(width: 100, alignment: .leading)
+                            TextField("2048", value: $chatLoader.maxGenerationTokens, format: .number)
+                                .textFieldStyle(.roundedBorder)
+                                .font(.caption)
+                                .frame(width: 80)
+                                .focused($focusedConfigField, equals: .maxTokens)
+                                .onSubmit {
+                                    Task { await chatLoader.aiRunConfigChanged() }
+                                }
+                            Text("(128-8192)")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                        }
+
+                        // Context Window Size
+                        HStack {
+                            Text("Context Size:")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                                .frame(width: 100, alignment: .leading)
+                            TextField("4096", value: $chatLoader.contextWindowSize, format: .number)
+                                .textFieldStyle(.roundedBorder)
+                                .font(.caption)
+                                .frame(width: 80)
+                                .focused($focusedConfigField, equals: .contextSize)
+                                .onSubmit {
+                                    Task { await chatLoader.aiRunConfigChanged() }
+                                }
+                            Text("(512-32768)")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                        }
+
+                        // Temperature
+                        HStack {
+                            Text("Temperature:")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                                .frame(width: 100, alignment: .leading)
+                            TextField("0.7", value: $chatLoader.temperature, format: .number)
+                                .textFieldStyle(.roundedBorder)
+                                .font(.caption)
+                                .frame(width: 80)
+                                .focused($focusedConfigField, equals: .temperature)
+                                .onSubmit {
+                                    Task { await chatLoader.aiRunConfigChanged() }
+                                }
+                            Text("(0.0-2.0)")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                        }
+
+                        // Top-K
+                        HStack {
+                            Text("Top-K:")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                                .frame(width: 100, alignment: .leading)
+                            TextField("40", value: $chatLoader.topK, format: .number)
+                                .textFieldStyle(.roundedBorder)
+                                .font(.caption)
+                                .frame(width: 80)
+                                .focused($focusedConfigField, equals: .topK)
+                                .onSubmit {
+                                    Task { await chatLoader.aiRunConfigChanged() }
+                                }
+                            Text("(1-100)")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                        }
+
+                        // Top-P
+                        HStack {
+                            Text("Top-P:")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                                .frame(width: 100, alignment: .leading)
+                            TextField("0.95", value: $chatLoader.topP, format: .number)
+                                .textFieldStyle(.roundedBorder)
+                                .font(.caption)
+                                .frame(width: 80)
+                                .focused($focusedConfigField, equals: .topP)
+                                .onSubmit {
+                                    Task { await chatLoader.aiRunConfigChanged() }
+                                }
+                            Text("(0.0-1.0)")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    .padding(.vertical, 4)
+                    .padding(.horizontal, 8)
+                    .background(Color(.systemGray6).opacity(0.5))
+                    .cornerRadius(8)
+                }
+            }
+            .onChange(of: focusedConfigField) { oldField, newField in
+                // Only trigger aiRunConfigChanged for AI Run Config fields, not document fields
+                let aiConfigFields: Set<ConfigField> = [.maxTokens, .contextSize, .temperature, .topK, .topP]
+
+                // When focus changes from an AI config field to nil or another field, trigger update
+                if let oldField = oldField, aiConfigFields.contains(oldField) && oldField != newField {
+                    Task { await chatLoader.aiRunConfigChanged() }
+                }
+            }
+        }
+    }
+    .padding(.horizontal)
+    .padding(.vertical, 8)
     }
 
     @ViewBuilder
@@ -369,6 +610,10 @@ struct ChatView: View {
     private func handleOnAppear() {
         // Prewarm the AI model for this chat session
         Task {
+            // Register tools if enabled before prewarming
+            if chatLoader.toolsEnabled {
+                await chatLoader.registerWeatherTool()
+            }
             await chatLoader.prewarmChat()
             // Load available AI models
             await chatLoader.loadAIModels()
@@ -378,8 +623,8 @@ struct ChatView: View {
             ExampleAppLogger.shared.log("💬 ChatView.onAppear", threadID: thread.freeTokenThreadId)
 
             if thread.freeTokenThreadId == nil {
-                ExampleAppLogger.shared.log("💬 ChatView.onAppear: No FreeToken thread ID found, creating thread...")
-                createFreeTokenThread()
+                ExampleAppLogger.shared.log("💬 ChatView.onAppear: No FreeToken thread ID found, will create when user sends first message")
+                // Don't create thread automatically - wait for first message
             } else {
                 ExampleAppLogger.shared.log("💬 ChatView.onAppear: Found existing FreeToken thread ID.", threadID: thread.freeTokenThreadId)
             }
@@ -465,7 +710,6 @@ struct ChatView: View {
             thread.updatedAt = Date()
         }
 
-        generateTitleIfNeeded(userMessage: userMessageContent)
     }
     
     // Runs the message thread, updates preview content, and handles scrolling and errors
@@ -488,16 +732,6 @@ struct ChatView: View {
         )
     }
     
-    private func generateTitleIfNeeded(userMessage: String) {
-        if chatThread?.title == "New Chat" {
-            Task {
-                let title = await chatLoader.generateLocalCompletion(userMessage: userMessage) ?? "New Chat"
-                DispatchQueue.main.async {
-                    self.chatThread?.title = title
-                }
-            }
-        }
-    }
     
     private func resetChat() {
         ExampleAppLogger.shared.log("💬 About to reset thread", threadID: chatThread?.freeTokenThreadId)
@@ -506,8 +740,18 @@ struct ChatView: View {
         // Reset runIdentifier for the new chat session
         chatLoader.resetRunIdentifier()
 
-        // Store selected model before clearing
+        // Store selected model, tools state, and AIRunConfig before clearing
         let selectedModel = chatLoader.selectedModelCode
+        let toolsEnabled = chatLoader.toolsEnabled
+        let aiRunConfigEnabled = chatLoader.aiRunConfigEnabled
+        let maxTokens = chatLoader.maxGenerationTokens
+        let contextSize = chatLoader.contextWindowSize
+        let topK = chatLoader.topK
+        let topP = chatLoader.topP
+        let temperature = chatLoader.temperature
+        let docSearchScope = chatLoader.documentSearchScope
+        let privateDocStoreIds = chatLoader.privateDocumentStoreIds
+        let additionalCtx = chatLoader.additionalContext
 
         // Clear current thread and messages
         withAnimation(.easeInOut(duration: 0.6)) {
@@ -520,21 +764,30 @@ struct ChatView: View {
             inputMessage = ""
             // Clear the thread IDs to ensure a new thread is created
             chatLoader.clearMessageThreadID()
-            // Restore selected model
+            // Restore selected model, tools state, and AIRunConfig
             chatLoader.selectedModelCode = selectedModel
+            chatLoader.toolsEnabled = toolsEnabled
+            chatLoader.aiRunConfigEnabled = aiRunConfigEnabled
+            chatLoader.maxGenerationTokens = maxTokens
+            chatLoader.contextWindowSize = contextSize
+            chatLoader.topK = topK
+            chatLoader.topP = topP
+            chatLoader.temperature = temperature
+            chatLoader.documentSearchScope = docSearchScope
+            chatLoader.privateDocumentStoreIds = privateDocStoreIds
+            chatLoader.additionalContext = additionalCtx
         }
 
-        // Create new thread in the backend
-        createFreeTokenThread {
-             withAnimation(.easeInOut(duration: 0.6)) { isCreatingThread = false }
+        // Don't create a thread immediately - wait for first message
+        // This allows the tools toggle to remain visible
+        withAnimation(.easeInOut(duration: 0.6)) { isCreatingThread = false }
 
-             ExampleAppLogger.shared.log("✅ Successfully reset message thread", threadID: chatThread?.freeTokenThreadId)
+        ExampleAppLogger.shared.log("✅ Successfully reset chat", threadID: nil)
 
-             // Prewarm the AI for the new chat session
-             Task {
-                 await chatLoader.prewarmChat()
-             }
-         }
+        // Prewarm the AI for the new chat session (will use tools if enabled)
+        Task {
+            await chatLoader.prewarmChat()
+        }
     }
     
     private func deleteChat() {
