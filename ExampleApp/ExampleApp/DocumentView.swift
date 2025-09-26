@@ -185,7 +185,7 @@ struct DocumentView: View {
                 }
                 .padding()
             }
-            .navigationTitle("Document Loader")
+            .navigationTitle("Documents")
         }
     }
 }
