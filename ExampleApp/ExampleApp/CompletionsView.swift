@@ -113,6 +113,7 @@ struct CompletionsView: View {
                         .padding(.bottom)
                     }
                 }
+                .scrollDismissesKeyboard(.interactively)
             }
             .navigationTitle("Completions")
             .navigationBarTitleDisplayMode(.inline)
