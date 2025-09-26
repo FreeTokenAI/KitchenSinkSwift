@@ -123,4 +123,29 @@ class FreeTokenClient: ObservableObject {
         ExampleAppLogger.shared.log("✅ Successfully registered device and completed setup")
     }
 
+    // Reset device - clears all state and returns to registration screen
+    func resetDevice() async {
+        do {
+            // Reset the FreeToken SDK
+            try await client.resetDevice()
+
+            // Reset our local state
+            await MainActor.run {
+                self.registered = false
+                self.needsRegistration = true
+                self.isRegistering = false
+                self.registrationError = nil
+                self.isDownloadingModel = false
+                self.modelDownloadProgress = 0.0
+            }
+
+            ExampleAppLogger.shared.log("✅ Device reset successfully - returning to registration")
+        } catch {
+            ExampleAppLogger.shared.log("❌ Error resetting device: \(error.localizedDescription)", level: .error)
+            await MainActor.run {
+                self.registrationError = "Failed to reset device: \(error.localizedDescription)"
+            }
+        }
+    }
+
 }

@@ -15,6 +15,10 @@ struct ExampleAppApp: App {
                         .tabItem {
                             Label("AI Messaging", systemImage: "bubble.left.and.bubble.right")
                         }
+                    CompletionsView(freeTokenClient: freeTokenClient)
+                        .tabItem {
+                            Label("Completions", systemImage: "sparkles")
+                        }
                     DocumentView(freeTokenClient: freeTokenClient)
                         .tabItem {
                             Label("Documents", systemImage: "doc.text")
@@ -22,6 +26,10 @@ struct ExampleAppApp: App {
                     AIModelsView(freeTokenClient: freeTokenClient)
                         .tabItem {
                             Label("AI Models", systemImage: "cpu.fill")
+                        }
+                    UtilitiesView(freeTokenClient: freeTokenClient)
+                        .tabItem {
+                            Label("Utilities", systemImage: "wrench.and.screwdriver")
                         }
                 }
                 .animation(.easeInOut, value: freeTokenClient.registered)
