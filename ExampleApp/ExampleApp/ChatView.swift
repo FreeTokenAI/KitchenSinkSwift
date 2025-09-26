@@ -10,6 +10,7 @@ struct ChatView: View {
     @State private var chatThread: ChatThread? = nil
     @ObservedObject var chatLoader: ChatViewModel
     @State private var isCreatingThread = false
+    @State private var showConfigControls = true
     @FocusState private var focusedConfigField: ConfigField?
 
     private enum ConfigField {
@@ -232,6 +233,17 @@ struct ChatView: View {
     private func modelSelectorView() -> some View {
         let isGenerating = chatLoader.responseStatus == .streamingTokens || chatLoader.isLoading || chatLoader.currentChatStatus != nil
 
+        // Auto-hide controls when generation starts, show for new chats
+        let _ = {
+            if isGenerating && showConfigControls {
+                DispatchQueue.main.async {
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        showConfigControls = false
+                    }
+                }
+            }
+        }()
+
         VStack(spacing: 12) {
             HStack {
                 Text("AI Model:")
@@ -244,6 +256,7 @@ struct ChatView: View {
                     // Regenerate UUID and prewarm for default model
                     chatLoader.resetRunIdentifier()
                     Task {
+                        // Tool masking will be applied during prewarmChat based on toolsEnabled
                         await chatLoader.prewarmChat()
                     }
                 }) {
@@ -259,6 +272,7 @@ struct ChatView: View {
                         chatLoader.resetRunIdentifier()
                         if !model.cloudOnly {
                             Task {
+                                // Tool masking will be applied during prewarmChat based on toolsEnabled
                                 await chatLoader.prewarmChat(overrideModelCode: model.code)
                             }
                         }
@@ -329,10 +343,31 @@ struct ChatView: View {
             }
 
             Spacer()
+
+            // Toggle button for config controls - always visible
+            Button(action: {
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    showConfigControls.toggle()
+                }
+            }) {
+                HStack(spacing: 4) {
+                    Image(systemName: showConfigControls ? "chevron.up.circle" : "chevron.down.circle")
+                        .font(.system(size: 16))
+                    Text(showConfigControls ? "Hide Config" : "Show Config")
+                        .font(.caption)
+                }
+                .foregroundColor(.accentColor)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(Color(.systemGray6).opacity(0.5))
+                .cornerRadius(6)
+            }
+            .buttonStyle(PlainButtonStyle())
         }
 
-        // Document Search and Context Settings - always visible
-        VStack(alignment: .leading, spacing: 8) {
+        // Document Search and Context Settings - always visible when showConfigControls is true
+        if showConfigControls {
+            VStack(alignment: .leading, spacing: 8) {
                 // Document Search Scope
                 HStack {
                     Text("Document Search Scope:")
@@ -379,9 +414,14 @@ struct ChatView: View {
             .padding(.horizontal, 8)
             .background(Color(.systemGray6).opacity(0.3))
             .cornerRadius(8)
+            .transition(.asymmetric(
+                insertion: .move(edge: .top).combined(with: .opacity),
+                removal: .move(edge: .top).combined(with: .opacity)
+            ))
+        }
 
-        // Tools Toggle - show for new chats or chats with no messages
-        if chatLoader.messages.isEmpty && !isGenerating {
+        // Tools Toggle - show when config controls are visible and no thread exists
+        if showConfigControls && chatThread?.freeTokenThreadId == nil {
             HStack {
                 Text("Tools:")
                     .font(.subheadline)
@@ -412,9 +452,14 @@ struct ChatView: View {
                     }
                 }
             }
+            .transition(.asymmetric(
+                insertion: .move(edge: .top).combined(with: .opacity),
+                removal: .move(edge: .top).combined(with: .opacity)
+            ))
 
-            // AIRunConfig Toggle and Settings - show for new chats or chats with no messages
-            VStack(alignment: .leading, spacing: 10) {
+            // AIRunConfig Toggle and Settings - show when config controls are visible and no thread exists
+            if showConfigControls && chatThread?.freeTokenThreadId == nil {
+                VStack(alignment: .leading, spacing: 10) {
                 HStack {
                     Text("AI Run Config:")
                         .font(.subheadline)
@@ -548,6 +593,11 @@ struct ChatView: View {
                     Task { await chatLoader.aiRunConfigChanged() }
                 }
             }
+            .transition(.asymmetric(
+                insertion: .move(edge: .top).combined(with: .opacity),
+                removal: .move(edge: .top).combined(with: .opacity)
+            ))
+            }
         }
     }
     .padding(.horizontal)
@@ -608,12 +658,14 @@ struct ChatView: View {
     
     // Called when the view appears. Handles thread initialization
     private func handleOnAppear() {
+        // Set initial state of config controls based on whether chat is empty
+        showConfigControls = chatLoader.messages.isEmpty
+
         // Prewarm the AI model for this chat session
         Task {
-            // Register tools if enabled before prewarming
-            if chatLoader.toolsEnabled {
-                await chatLoader.registerWeatherTool()
-            }
+            // Always register the weather tool when view loads
+            // Tool masking will control whether it's actually used
+            await chatLoader.registerWeatherTool()
             await chatLoader.prewarmChat()
             // Load available AI models
             await chatLoader.loadAIModels()
@@ -776,6 +828,8 @@ struct ChatView: View {
             chatLoader.documentSearchScope = docSearchScope
             chatLoader.privateDocumentStoreIds = privateDocStoreIds
             chatLoader.additionalContext = additionalCtx
+            // Show config controls for new chat
+            showConfigControls = true
         }
 
         // Don't create a thread immediately - wait for first message
@@ -784,8 +838,9 @@ struct ChatView: View {
 
         ExampleAppLogger.shared.log("✅ Successfully reset chat", threadID: nil)
 
-        // Prewarm the AI for the new chat session (will use tools if enabled)
+        // Prewarm the AI for the new chat session (will use tool masking based on toolsEnabled)
         Task {
+            // Tool masking will be applied during prewarmChat based on toolsEnabled
             await chatLoader.prewarmChat()
         }
     }

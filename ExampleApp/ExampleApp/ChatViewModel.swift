@@ -73,9 +73,12 @@ class ChatViewModel: ObservableObject, @unchecked Sendable {
 
         let modelDescription = modelCode ?? "Default Model"
 
+        // Set toolAccess based on toolsEnabled state
+        let toolAccess: [FreeToken.ToolRunMask] = toolsEnabled ? [.allowAll] : [.denyAll]
+
         // Use thread-specific prewarm if we have an existing thread
         if let threadID = threadID {
-            ExampleAppLogger.shared.log("🔥 Prewarming AI for existing thread with model: \(modelDescription), tools: \(toolsEnabled ? "enabled" : "disabled"), config: \(runConfig != nil ? "custom" : "default")", threadID: threadID)
+            ExampleAppLogger.shared.log("🔥 Prewarming AI for existing thread with model: \(modelDescription), tools: \(toolsEnabled ? "allowAll" : "denyAll"), config: \(runConfig != nil ? "custom" : "default")", threadID: threadID)
 
             await freeTokenClient.client.prewarmAIForMessageThread(
                 messageThreadID: threadID,
@@ -89,12 +92,13 @@ class ChatViewModel: ObservableObject, @unchecked Sendable {
                 }
             )
         } else {
-            ExampleAppLogger.shared.log("🔥 Prewarming AI for chat with runIdentifier: \(runId), model: \(modelDescription), tools: \(toolsEnabled ? "enabled" : "disabled"), config: \(runConfig != nil ? "custom" : "default")")
+            ExampleAppLogger.shared.log("🔥 Prewarming AI for chat with runIdentifier: \(runId), model: \(modelDescription), tools: \(toolsEnabled ? "allowAll" : "denyAll"), config: \(runConfig != nil ? "custom" : "default")")
 
             await freeTokenClient.client.prewarmAIFor(
                 runIdentifier: runId,
                 modelCode: modelCode,
                 runConfig: runConfig,
+                toolAccess: toolAccess,
                 success: {
                     ExampleAppLogger.shared.log("✅ Successfully prewarmed AI for chat with model: \(modelDescription)")
                 },
@@ -141,17 +145,13 @@ class ChatViewModel: ObservableObject, @unchecked Sendable {
         // Note: toolsEnabled is already toggled by the Toggle UI control
         // We just need to handle the side effects
 
-        // Register or unregister tools based on current state
-        if toolsEnabled {
-            await registerWeatherTool()
-        } else {
-            await freeTokenClient.client.removeAllToolDefinitions()
-        }
+        // Tool is always registered, we just use masking to control access
+        // No need to register/unregister tools anymore
 
         // Reset run identifier for new session
         resetRunIdentifier()
 
-        // Re-prewarm with updated tool access
+        // Re-prewarm with updated tool access (will use allowAll or denyAll based on toolsEnabled)
         await prewarmChat()
     }
 
@@ -228,14 +228,18 @@ class ChatViewModel: ObservableObject, @unchecked Sendable {
 
     nonisolated func createMessageThread(newMessage: String? = nil) async -> FreeToken.MessageThread? {
         // Get values from MainActor
-        let (client) = await MainActor.run {
-            (freeTokenClient)
+        let (client, toolsEnabled) = await MainActor.run {
+            (freeTokenClient, self.toolsEnabled)
         }
-        
+
+        // Set toolAccess based on toolsEnabled state
+        let toolAccess: [FreeToken.ToolRunMask] = toolsEnabled ? [.allowAll] : [.denyAll]
+
         // Otherwise create a new thread
         return await withCheckedContinuation { continuation in
             Task {
                 await client.client.createMessageThread(
+                    toolAccess: toolAccess,
                     success: { messageThread in
                         Task { @MainActor in
                             self.messageThreadID = messageThread.id
@@ -244,7 +248,7 @@ class ChatViewModel: ObservableObject, @unchecked Sendable {
                             // Also update FreeTokenClient's thread ID
                             self.isLoading = false
                         }
-                        ExampleAppLogger.shared.log("✅ Successfully created FreeToken thread", threadID: messageThread.id)
+                        ExampleAppLogger.shared.log("✅ Successfully created FreeToken thread with toolAccess: \(toolsEnabled ? "allowAll" : "denyAll")", threadID: messageThread.id)
                         continuation.resume(returning: messageThread)
                     },
                     error: { error in
@@ -452,8 +456,6 @@ class ChatViewModel: ObservableObject, @unchecked Sendable {
                             }
                         }
                     )
-                default:
-                    break
                 }
             },
             toolCallback: toolCallback
