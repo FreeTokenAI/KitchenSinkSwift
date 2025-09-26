@@ -9,6 +9,9 @@ class AIModelsViewModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var currentlyDownloadingModel: String?
     @Published var modelDownloadStates: [String: FreeToken.ModelDownloadState] = [:]
+    @Published var downloadProgress: Double = 0.0
+    @Published var showUnsupportedAlert = false
+    @Published var unsupportedModelName = ""
 
     private let freeTokenClient: FreeTokenClient
     private var cancellables = Set<AnyCancellable>()
@@ -55,11 +58,14 @@ class AIModelsViewModel: ObservableObject {
     }
 
     func downloadModel(modelCode: String) async {
+        ExampleAppLogger.shared.log("🚀 Starting model download for: \(modelCode)")
         // Use the global download state from FreeTokenClient
         await MainActor.run {
+            self.objectWillChange.send()  // Force UI update
             self.currentlyDownloadingModel = modelCode
             self.freeTokenClient.isDownloadingModel = true
             self.freeTokenClient.modelDownloadProgress = 0.0
+            self.downloadProgress = 0.0
         }
 
         await freeTokenClient.client.downloadAIModel(
@@ -68,24 +74,46 @@ class AIModelsViewModel: ObservableObject {
                 await MainActor.run {
                     self.currentlyDownloadingModel = nil
                     self.freeTokenClient.isDownloadingModel = false
-                    self.freeTokenClient.modelDownloadProgress = 1.0
-                    self.modelDownloadStates[modelCode] = .downloaded
-                    ExampleAppLogger.shared.log("✅ Model download completed: \(state.rawValue)")
+
+                    switch state {
+                    case .downloaded:
+                        self.freeTokenClient.modelDownloadProgress = 1.0
+                        self.downloadProgress = 100.0
+                        self.modelDownloadStates[modelCode] = .downloaded
+                        ExampleAppLogger.shared.log("✅ Model download completed: \(state.rawValue)")
+                    case .aiNotSupported:
+                        self.downloadProgress = 0.0
+                        // Do NOT mark as downloaded when not supported
+                        self.modelDownloadStates[modelCode] = .notDownloaded
+                        if let model = self.aiModels.first(where: { $0.code == modelCode }) {
+                            self.unsupportedModelName = model.name
+                        } else {
+                            self.unsupportedModelName = modelCode
+                        }
+                        self.showUnsupportedAlert = true
+                        ExampleAppLogger.shared.log("⚠️ Model not supported on this device: \(modelCode)")
+                    case .cloudOnly:
+                        self.downloadProgress = 0.0
+                        ExampleAppLogger.shared.log("☁️ Cloud-only model, no download needed: \(modelCode)")
+                    }
                 }
             },
             error: { error in
                 await MainActor.run {
                     self.currentlyDownloadingModel = nil
                     self.freeTokenClient.isDownloadingModel = false
+                    self.downloadProgress = 0.0
                     self.errorMessage = error.message
                     ExampleAppLogger.shared.log("❌ Model download failed: \(error.message)", level: .error)
                 }
             },
             progressPercent: { progress in
-                Task {
-                    await MainActor.run {
-                        self.freeTokenClient.modelDownloadProgress = progress / 100.0
-                    }
+                Task { @MainActor in
+                    // SDK provides progress as 0.0-1.0, convert to percentage
+                    self.downloadProgress = progress * 100.0
+                    self.freeTokenClient.modelDownloadProgress = progress
+                    self.objectWillChange.send()  // Force UI update
+                    ExampleAppLogger.shared.log("📊 Model download progress: \(String(format: "%.1f", progress * 100))% for \(modelCode)")
                 }
             }
         )
@@ -97,7 +125,7 @@ class AIModelsViewModel: ObservableObject {
 
     func getDownloadProgress(_ modelCode: String) -> Double {
         if currentlyDownloadingModel == modelCode {
-            return freeTokenClient.modelDownloadProgress * 100.0
+            return downloadProgress
         }
         return 0.0
     }

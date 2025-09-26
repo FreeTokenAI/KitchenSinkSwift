@@ -78,12 +78,12 @@ struct AIModelDetailView: View {
 
                     if !model.cloudOnly {
                         VStack(spacing: 12) {
-                            if viewModel.isModelDownloading(model.code) {
+                            if viewModel.currentlyDownloadingModel == model.code {
                                 VStack(spacing: 8) {
-                                    ProgressView(value: viewModel.getDownloadProgress(model.code) / 100.0)
+                                    ProgressView(value: viewModel.downloadProgress / 100.0)
                                         .progressViewStyle(LinearProgressViewStyle())
 
-                                    Text("Downloading: \(Int(viewModel.getDownloadProgress(model.code)))%")
+                                    Text("Downloading: \(Int(viewModel.downloadProgress))%")
                                         .font(.caption)
                                         .foregroundColor(.secondary)
                                 }
@@ -143,7 +143,7 @@ struct AIModelDetailView: View {
                                     .background(Color.accentColor)
                                     .cornerRadius(12)
                                 }
-                                .disabled(viewModel.isModelDownloading(model.code))
+                                .disabled(viewModel.currentlyDownloadingModel == model.code)
                             }
                         }
                         .padding(.top)
@@ -174,11 +174,19 @@ struct AIModelDetailView: View {
         } message: {
             Text("Are you sure you want to delete '\(model.name)'? You can download it again later if needed.")
         }
+        .alert("Model Not Supported", isPresented: $viewModel.showUnsupportedAlert) {
+            Button("OK", role: .cancel) {
+                viewModel.showUnsupportedAlert = false
+            }
+        } message: {
+            Text("This device does not meet the requirements for on-device AI for \(viewModel.unsupportedModelName).")
+        }
     }
 
     private func downloadModel() async {
         await viewModel.downloadModel(modelCode: model.code)
-        if !viewModel.isModelDownloading(model.code) {
+        // Only mark as complete if actually downloaded (not if unsupported)
+        if !viewModel.isModelDownloading(model.code) && viewModel.isModelDownloaded(model.code) {
             downloadComplete = true
         }
     }
