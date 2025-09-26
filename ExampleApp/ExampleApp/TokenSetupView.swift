@@ -123,12 +123,7 @@ struct TokenSetupView: View {
                             )
                         }
 
-                        // Progress indicator for model download
-                        if freeTokenClient.isDownloadingModel {
-                            ModelDownloadProgressBar(progress: freeTokenClient.modelDownloadProgress)
-                                .frame(maxWidth: 400)
-                                .transition(.move(edge: .bottom).combined(with: .opacity))
-                        }
+                        // Removed model download progress - now shown globally
                     }
 
                     Spacer()

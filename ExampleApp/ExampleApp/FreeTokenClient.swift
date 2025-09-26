@@ -46,7 +46,13 @@ class FreeTokenClient: ObservableObject {
 
             // Register device session
             await client.registerDeviceSession(scope: "example-app-device", success: {
-                await self.downloadModel()
+                // Complete registration immediately, download model in background
+                await self.completeRegistration()
+
+                // Start model download in background (non-blocking)
+                Task {
+                    await self.downloadModel()
+                }
             }, error: { error in
                 ExampleAppLogger.shared.log("❌ Device registration failed: \(error)", level: .error)
                 Task {
@@ -72,39 +78,38 @@ class FreeTokenClient: ObservableObject {
         }
 
         await client.downloadAIModel(success: { _ in
+            ExampleAppLogger.shared.log("✅ Model downloaded successfully")
             await MainActor.run {
-                self.isDownloadingModel = false
                 self.modelDownloadProgress = 1.0
             }
-            await self.loadModel()
-        }, error: { error in
-            ExampleAppLogger.shared.log("⚠️ Model download failed - continuing with cloud inference: \(error)", level: .warning)
+
+            // Keep the progress bar visible for a moment before hiding
             Task {
+                try? await Task.sleep(nanoseconds: 2_000_000_000) // 2 seconds
                 await MainActor.run {
                     self.isDownloadingModel = false
-                    self.registrationError = nil // Clear error as cloud inference is acceptable
                 }
-                // Continue with registration even if model download fails
-                await self.completeRegistration()
+            }
+        }, error: { error in
+            ExampleAppLogger.shared.log("⚠️ Model download failed - continuing with cloud inference: \(error)", level: .warning)
+            await MainActor.run {
+                self.modelDownloadProgress = 0.0
+            }
+
+            // Keep error state visible briefly
+            Task {
+                try? await Task.sleep(nanoseconds: 2_000_000_000) // 2 seconds
+                await MainActor.run {
+                    self.isDownloadingModel = false
+                }
             }
         }, progressPercent: { progressPercent in
-            ExampleAppLogger.shared.log("📥 Model download progress: \(progressPercent)%")
+            // progressPercent is already in 0.0-1.0 range (0.20 = 20%)
+            ExampleAppLogger.shared.log("📥 Model download progress: \(Int(progressPercent * 100))%")
             Task {
                 await MainActor.run {
                     self.modelDownloadProgress = progressPercent
                 }
-            }
-        })
-    }
-
-    private func loadModel() async {
-        await client.loadModel(success: { _ in
-            await self.completeRegistration()
-        }, error: { error in
-            ExampleAppLogger.shared.log("⚠️ Error loading model into memory - 📱 Continuing with cloud inference: \(error)", level: .warning)
-            Task {
-                // Continue with registration even if model load fails
-                await self.completeRegistration()
             }
         })
     }
