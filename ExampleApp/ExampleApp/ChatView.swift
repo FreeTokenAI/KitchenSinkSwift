@@ -61,120 +61,114 @@ struct ChatView: View {
                     .animation(.easeInOut(duration: 0.2), value: status)
                 }
 
-                // Token usage stats display
+                // Token usage stats display - single line with horizontal scroll
                 if let tokenUsage = chatLoader.lastTokenUsage {
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack {
-                            Text("Stats")
-                                .font(.caption)
-                                .fontWeight(.semibold)
-                            Spacer()
-                        }
+                    HStack(spacing: 0) {
+                        Text("Stats")
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.secondary)
+                            .padding(.leading, 16)
+                            .padding(.trailing, 8)
 
-                        // Use a wrapping horizontal layout
-                        FlowLayout(spacing: 12) {
-                            // Tokens per second
-                            if tokenUsage.tokensPerSecond > 0 {
-                                HStack(spacing: 4) {
-                                    Image(systemName: "speedometer")
-                                        .font(.caption)
-                                    Text("Speed:")
-                                        .font(.caption)
-                                    Text("\(String(format: "%.1f", tokenUsage.tokensPerSecond)) tokens/sec")
-                                        .font(.caption)
-                                        .fontWeight(.medium)
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 16) {
+                                // Tokens per second
+                                if tokenUsage.tokensPerSecond > 0 {
+                                    HStack(spacing: 3) {
+                                        Image(systemName: "speedometer")
+                                            .font(.caption2)
+                                        Text("Speed:")
+                                            .font(.caption2)
+                                        Text("\(String(format: "%.1f", tokenUsage.tokensPerSecond)) t/s")
+                                            .font(.caption2)
+                                            .fontWeight(.medium)
+                                    }
                                 }
-                                .fixedSize() // Prevent breaking within the stat
-                            }
 
-                            // Total tokens
-                            if tokenUsage.totalTokens > 0 {
-                                HStack(spacing: 4) {
-                                    Image(systemName: "number.square")
-                                        .font(.caption)
-                                    Text("Total:")
-                                        .font(.caption)
-                                    Text("\(tokenUsage.totalTokens)")
-                                        .font(.caption)
-                                        .fontWeight(.medium)
+                                // Total tokens
+                                if tokenUsage.totalTokens > 0 {
+                                    HStack(spacing: 3) {
+                                        Image(systemName: "number.square")
+                                            .font(.caption2)
+                                        Text("Total:")
+                                            .font(.caption2)
+                                        Text("\(tokenUsage.totalTokens)")
+                                            .font(.caption2)
+                                            .fontWeight(.medium)
+                                    }
                                 }
-                                .fixedSize()
-                            }
 
-                            // Input tokens
-                            if tokenUsage.inputTokens > 0 {
-                                HStack(spacing: 4) {
-                                    Image(systemName: "arrow.down.square")
-                                        .font(.caption)
-                                    Text("Input:")
-                                        .font(.caption)
-                                    Text("\(tokenUsage.inputTokens)")
-                                        .font(.caption)
-                                        .fontWeight(.medium)
+                                // Input tokens
+                                if tokenUsage.inputTokens > 0 {
+                                    HStack(spacing: 3) {
+                                        Image(systemName: "arrow.down.square")
+                                            .font(.caption2)
+                                        Text("In:")
+                                            .font(.caption2)
+                                        Text("\(tokenUsage.inputTokens)")
+                                            .font(.caption2)
+                                            .fontWeight(.medium)
+                                    }
                                 }
-                                .fixedSize()
-                            }
 
-                            // Output tokens
-                            if tokenUsage.outputTokens > 0 {
-                                HStack(spacing: 4) {
-                                    Image(systemName: "arrow.up.square")
-                                        .font(.caption)
-                                    Text("Output:")
-                                        .font(.caption)
-                                    Text("\(tokenUsage.outputTokens)")
-                                        .font(.caption)
-                                        .fontWeight(.medium)
+                                // Output tokens
+                                if tokenUsage.outputTokens > 0 {
+                                    HStack(spacing: 3) {
+                                        Image(systemName: "arrow.up.square")
+                                            .font(.caption2)
+                                        Text("Out:")
+                                            .font(.caption2)
+                                        Text("\(tokenUsage.outputTokens)")
+                                            .font(.caption2)
+                                            .fontWeight(.medium)
+                                    }
                                 }
-                                .fixedSize()
-                            }
 
-                            // Model code
-                            if !tokenUsage.modelCode.isEmpty {
-                                HStack(spacing: 4) {
-                                    Image(systemName: "cpu")
-                                        .font(.caption)
-                                    Text("Model:")
-                                        .font(.caption)
-                                    Text(tokenUsage.modelCode)
-                                        .font(.caption)
-                                        .fontWeight(.medium)
+                                // Model code
+                                if !tokenUsage.modelCode.isEmpty {
+                                    HStack(spacing: 3) {
+                                        Image(systemName: "cpu")
+                                            .font(.caption2)
+                                        Text("Model:")
+                                            .font(.caption2)
+                                        Text(tokenUsage.modelCode)
+                                            .font(.caption2)
+                                            .fontWeight(.medium)
+                                    }
                                 }
-                                .fixedSize()
-                            }
 
-                            // Confidence
-                            if let confidence = tokenUsage.confidence {
-                                HStack(spacing: 4) {
-                                    Image(systemName: "checkmark.shield")
-                                        .font(.caption)
-                                    Text("Confidence:")
-                                        .font(.caption)
-                                    Text("\(String(format: "%.1f%%", confidence * 100))")
-                                        .font(.caption)
-                                        .fontWeight(.medium)
+                                // Confidence
+                                if let confidence = tokenUsage.confidence {
+                                    HStack(spacing: 3) {
+                                        Image(systemName: "checkmark.shield")
+                                            .font(.caption2)
+                                        Text("Conf:")
+                                            .font(.caption2)
+                                        Text("\(String(format: "%.1f%%", confidence * 100))")
+                                            .font(.caption2)
+                                            .fontWeight(.medium)
+                                    }
                                 }
-                                .fixedSize()
-                            }
 
-                            // Perplexity
-                            if let perplexity = tokenUsage.perplexity {
-                                HStack(spacing: 4) {
-                                    Image(systemName: "chart.line.uptrend.xyaxis")
-                                        .font(.caption)
-                                    Text("Perplexity:")
-                                        .font(.caption)
-                                    Text("\(String(format: "%.2f", perplexity))")
-                                        .font(.caption)
-                                        .fontWeight(.medium)
+                                // Perplexity
+                                if let perplexity = tokenUsage.perplexity {
+                                    HStack(spacing: 3) {
+                                        Image(systemName: "chart.line.uptrend.xyaxis")
+                                            .font(.caption2)
+                                        Text("Perp:")
+                                            .font(.caption2)
+                                        Text("\(String(format: "%.2f", perplexity))")
+                                            .font(.caption2)
+                                            .fontWeight(.medium)
+                                    }
                                 }
-                                .fixedSize()
                             }
+                            .padding(.trailing, 16)
                         }
                     }
+                    .frame(height: 36)
                     .foregroundColor(.secondary)
-                    .padding(.horizontal)
-                    .padding(.vertical, 10)
                     .background(Color(.systemGray6).opacity(0.5))
                     .transition(.opacity.combined(with: .scale))
                 }
@@ -265,42 +259,47 @@ struct ChatView: View {
 
                 Divider()
 
-                ForEach(chatLoader.availableModels, id: \.code) { model in
-                    Button(action: {
-                        chatLoader.selectedModelCode = model.code
-                        // Regenerate UUID and prewarm with new model (skip for cloud-only models)
-                        chatLoader.resetRunIdentifier()
-                        if !model.cloudOnly {
-                            Task {
-                                // Tool masking will be applied during prewarmChat based on toolsEnabled
-                                await chatLoader.prewarmChat(overrideModelCode: model.code)
-                            }
-                        }
-                    }) {
-                        HStack {
-                            // Download status icon
-                            Group {
-                                if chatLoader.modelDownloadStates[model.code] == .downloaded {
-                                    Image(systemName: "checkmark.circle.fill")
-                                        .foregroundColor(.green)
-                                        .font(.system(size: 14))
-                                } else if model.cloudOnly {
-                                    Image(systemName: "cloud.fill")
-                                        .foregroundColor(.blue)
-                                        .font(.system(size: 14))
+                // Add ScrollViewReader for better control on small screens
+                Section {
+                    ForEach(chatLoader.availableModels, id: \.code) { model in
+                        Button(action: {
+                            chatLoader.selectedModelCode = model.code
+                            // Regenerate UUID and prewarm with new model (skip for cloud-only models)
+                            chatLoader.resetRunIdentifier()
+                            if !model.cloudOnly {
+                                Task {
+                                    // Tool masking will be applied during prewarmChat based on toolsEnabled
+                                    await chatLoader.prewarmChat(overrideModelCode: model.code)
                                 }
                             }
+                        }) {
+                            HStack {
+                                // Download status icon
+                                Group {
+                                    if chatLoader.modelDownloadStates[model.code] == .downloaded {
+                                        Image(systemName: "checkmark.circle.fill")
+                                            .foregroundColor(.green)
+                                            .font(.system(size: 14))
+                                    } else if model.cloudOnly {
+                                        Image(systemName: "cloud.fill")
+                                            .foregroundColor(.blue)
+                                            .font(.system(size: 14))
+                                    }
+                                }
 
-                            // Model name
-                            Text(model.name)
+                                // Model name
+                                Text(model.name)
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.8) // Allow text to scale down if needed
 
-                            Spacer()
+                                Spacer()
 
-                            // Selection checkmark
-                            if chatLoader.selectedModelCode == model.code {
-                                Image(systemName: "checkmark")
-                                    .font(.system(size: 14))
-                                    .foregroundColor(.primary)
+                                // Selection checkmark
+                                if chatLoader.selectedModelCode == model.code {
+                                    Image(systemName: "checkmark")
+                                        .font(.system(size: 14))
+                                        .foregroundColor(.primary)
+                                }
                             }
                         }
                     }
@@ -333,6 +332,7 @@ struct ChatView: View {
                 .background(Color(.systemGray6))
                 .cornerRadius(8)
             }
+            .menuStyle(DefaultMenuStyle()) // Ensure proper menu presentation on iOS
             .disabled(isGenerating)
             .opacity(isGenerating ? 0.6 : 1.0)
 
