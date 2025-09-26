@@ -17,7 +17,7 @@ struct AIModelsView: View {
                 VStack(spacing: 28) {
                     VStack(alignment: .leading, spacing: 14) {
                         Label {
-                            Text("Browse and download AI models available in FreeToken. Cloud models work instantly, while local models can be downloaded for offline use.")
+                            Text("Browse and download AI models available in FreeToken. Cloud-only models are too large to run on local devices, while local models can be downloaded for use on device.")
                         } icon: {
                             Image(systemName: "cpu.fill")
                                 .foregroundColor(.accentColor)
