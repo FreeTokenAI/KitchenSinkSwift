@@ -1,8 +1,8 @@
 ![FreeToken Kitchen Sink](custom-header.png)
 
-# FreeToken Swift SDK Example App
+# FreeToken Swift SDK Kitchen Sink App
 
-A comprehensive demonstration application showcasing all capabilities of the FreeToken Swift SDK. This "kitchen sink" app provides working examples of every major feature, from basic AI chat to advanced RAG (Retrieval-Augmented Generation) implementations.
+A comprehensive demonstration application showcasing all capabilities of the FreeToken Swift SDK. This "kitchen sink" app provides working examples of every major feature, from basic AI chat to advanced RAG (Retrieval-Augmented Generation) implementations. 
 
 ## 🚀 Quick Start
 
