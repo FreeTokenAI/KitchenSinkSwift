@@ -64,12 +64,16 @@ struct ToolCallResponseView: View {
 
                     TextEditor(text: $responseText)
                         .font(.system(.body, design: .monospaced))
+                        .foregroundColor(.white)
+                        .scrollContentBackground(.hidden)
                         .padding(8)
-                        .background(Color(.systemGray6))
-                        .cornerRadius(8)
-                        .overlay(
+                        .background(
                             RoundedRectangle(cornerRadius: 8)
-                                .stroke(Color(.separator), lineWidth: 1)
+                                .fill(CyberpunkTheme.Colors.cyberPanel)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .stroke(CyberpunkTheme.Colors.cyberCyan.opacity(0.3), lineWidth: 1)
+                                )
                         )
                         .frame(minHeight: 150)
                         .focused($isFocused)

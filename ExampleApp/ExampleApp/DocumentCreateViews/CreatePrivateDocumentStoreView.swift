@@ -20,154 +20,192 @@ struct CreatePrivateDocumentStoreView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 28) {
-                    VStack(alignment: .leading, spacing: 16) {
-                        VStack(alignment: .leading, spacing: 12) {
-                            Label {
-                                Text("Create a private document store to keep your documents secure. Only you will have access to documents in this store.")
-                            } icon: {
-                                Image(systemName: "lock.shield")
-                                    .foregroundColor(.green)
-                            }
-                            .font(.body)
-                            .foregroundColor(.primary)
+            ZStack {
+                // Cyberpunk background
+                CyberpunkTheme.Gradients.backgroundGradient
+                    .ignoresSafeArea()
 
-                            Text("Important: The store ID will only be shown once after creation. Make sure to save it securely.")
-                                .font(.caption)
-                                .foregroundColor(.orange)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 6)
-                                .background(Color.orange.opacity(0.1))
-                                .cornerRadius(8)
+                ScrollView {
+                    VStack(spacing: 28) {
+                        VStack(alignment: .leading, spacing: 16) {
+                            VStack(alignment: .leading, spacing: 12) {
+                                Label {
+                                    Text("CREATE A PRIVATE DOCUMENT STORE TO KEEP YOUR DOCUMENTS SECURE. ONLY YOU WILL HAVE ACCESS TO DOCUMENTS IN THIS STORE.")
+                                        .font(.system(size: 12, weight: .medium))
+                                        .textCase(.uppercase)
+                                        .kerning(0.8)
+                                } icon: {
+                                    Image(systemName: "lock.shield")
+                                        .foregroundColor(CyberpunkTheme.Colors.cyberGreen)
+                                        .neonGlow(color: CyberpunkTheme.Colors.cyberGreen, radius: 2)
+                                }
+                                .foregroundColor(CyberpunkTheme.Colors.cyberBlueLight)
+
+                                Text("IMPORTANT: THE STORE ID WILL ONLY BE SHOWN ONCE AFTER CREATION. MAKE SURE TO SAVE IT SECURELY.")
+                                    .font(.system(size: 10, weight: .medium))
+                                    .textCase(.uppercase)
+                                    .kerning(0.6)
+                                    .foregroundColor(CyberpunkTheme.Colors.cyberOrange)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 6)
+                                    .background(CyberpunkTheme.Colors.cyberOrange.opacity(0.1))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .stroke(CyberpunkTheme.Colors.cyberOrange.opacity(0.3), lineWidth: 1)
+                                    )
+                            }
+                            .padding()
+                            .cyberPanel()
+
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("STORE NAME")
+                                    .font(.system(size: 12, weight: .semibold))
+                                    .textCase(.uppercase)
+                                    .kerning(0.8)
+                                    .foregroundColor(CyberpunkTheme.Colors.cyberGold)
+
+                                TextField("MY PRIVATE DOCUMENTS", text: $storeName)
+                                    .font(.system(size: 13, weight: .regular, design: .monospaced))
+                                    .foregroundColor(CyberpunkTheme.Colors.cyberCyan)
+                                    .padding(10)
+                                    .background(CyberpunkTheme.Colors.cyberPanel)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .stroke(CyberpunkTheme.Colors.cyberCyan.opacity(0.3), lineWidth: 1)
+                                    )
+                                    .disabled(showStoreCreated)
+                            }
+
+                            if !showStoreCreated {
+                                Button(action: createStore) {
+                                    HStack {
+                                        if isCreating {
+                                            ProgressView()
+                                                .progressViewStyle(CircularProgressViewStyle(tint: CyberpunkTheme.Colors.cyberCyan))
+                                                .scaleEffect(0.8)
+                                        } else {
+                                            Image(systemName: "plus.circle.fill")
+                                        }
+                                        Text(isCreating ? "CREATING..." : "CREATE STORE")
+                                            .font(.system(size: 14, weight: .bold))
+                                            .textCase(.uppercase)
+                                            .kerning(1.2)
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                }
+                                .cyberButton()
+                                .disabled(storeName.isEmpty || isCreating)
+                            }
+
+                            if let error = errorMessage {
+                                Text(error.uppercased())
+                                    .font(.system(size: 11, weight: .medium))
+                                    .textCase(.uppercase)
+                                    .kerning(0.6)
+                                    .foregroundColor(.red)
+                                    .neonGlow(color: .red, radius: 2)
+                                    .padding()
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .background(Color.red.opacity(0.1))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .stroke(Color.red.opacity(0.3), lineWidth: 1)
+                                    )
+                            }
+
+                            if showStoreCreated {
+                                VStack(alignment: .leading, spacing: 16) {
+                                    VStack(alignment: .leading, spacing: 12) {
+                                        Label {
+                                            Text("STORE CREATED SUCCESSFULLY!")
+                                                .font(.system(size: 14, weight: .bold))
+                                                .textCase(.uppercase)
+                                                .kerning(1.2)
+                                        } icon: {
+                                            Image(systemName: "checkmark.circle.fill")
+                                                .foregroundColor(CyberpunkTheme.Colors.cyberGreen)
+                                                .neonGlow(color: CyberpunkTheme.Colors.cyberGreen, radius: 2)
+                                        }
+                                        .foregroundColor(CyberpunkTheme.Colors.cyberGreen)
+
+                                        VStack(alignment: .leading, spacing: 8) {
+                                            Text("STORE ID (SAVE THIS!):")
+                                                .font(.system(size: 12, weight: .semibold))
+                                                .textCase(.uppercase)
+                                                .kerning(0.8)
+                                                .foregroundColor(CyberpunkTheme.Colors.cyberGold)
+
+                                            HStack {
+                                                Text(createdStoreId)
+                                                    .font(.system(size: 12, weight: .regular, design: .monospaced))
+                                                    .foregroundColor(CyberpunkTheme.Colors.cyberCyan)
+                                                    .padding(8)
+                                                    .background(CyberpunkTheme.Colors.cyberPanel)
+                                                    .overlay(
+                                                        RoundedRectangle(cornerRadius: 8)
+                                                            .stroke(CyberpunkTheme.Colors.cyberCyan.opacity(0.3), lineWidth: 1)
+                                                    )
+                                                    .textSelection(.enabled)
+
+                                                Button(action: {
+                                                    #if os(macOS)
+                                                    NSPasteboard.general.clearContents()
+                                                    NSPasteboard.general.setString(createdStoreId, forType: .string)
+                                                    #else
+                                                    UIPasteboard.general.string = createdStoreId
+                                                    #endif
+                                                }) {
+                                                    Image(systemName: "doc.on.doc")
+                                                        .foregroundColor(CyberpunkTheme.Colors.cyberCyan)
+                                                        .neonGlow(color: CyberpunkTheme.Colors.cyberCyan, radius: 2)
+                                                }
+                                                .buttonStyle(BorderlessButtonStyle())
+                                            }
+                                        }
+                                    }
+                                    .padding()
+                                    .background(CyberpunkTheme.Colors.cyberGreen.opacity(0.1))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .stroke(CyberpunkTheme.Colors.cyberGreen.opacity(0.3), lineWidth: 1)
+                                    )
+
+                                    NavigationLink(
+                                        destination: DocumentCreateViewWithStore(
+                                            freeTokenClient: freeTokenClient,
+                                            documentLoader: documentLoader,
+                                            privateDocumentStoreId: createdStoreId
+                                        ),
+                                        isActive: $navigateToCreateDocument
+                                    ) {
+                                        Button(action: {
+                                            navigateToCreateDocument = true
+                                        }) {
+                                            HStack {
+                                                Image(systemName: "doc.badge.plus")
+                                                Text("ADD DOCUMENT TO THIS STORE")
+                                                    .font(.system(size: 14, weight: .bold))
+                                                    .textCase(.uppercase)
+                                                    .kerning(1.2)
+                                            }
+                                            .frame(maxWidth: .infinity)
+                                        }
+                                        .cyberButton()
+                                    }
+                                    .buttonStyle(PlainButtonStyle())
+                                }
+                                .transition(.move(edge: .top).combined(with: .opacity))
+                                .animation(.spring(), value: showStoreCreated)
+                            }
                         }
                         .padding()
-                        .background(
-                            LinearGradient(
-                                gradient: Gradient(colors: [Color(.systemGray6), Color(.systemGray5)]),
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .cornerRadius(14)
-
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Store Name")
-                                .font(.headline)
-                                .foregroundColor(.primary)
-
-                            TextField("My Private Documents", text: $storeName)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                                .disabled(showStoreCreated)
-                        }
-
-                        if !showStoreCreated {
-                            Button(action: createStore) {
-                                HStack {
-                                    if isCreating {
-                                        ProgressView()
-                                            .progressViewStyle(CircularProgressViewStyle())
-                                            .scaleEffect(0.8)
-                                    } else {
-                                        Image(systemName: "plus.circle.fill")
-                                    }
-                                    Text(isCreating ? "Creating..." : "Create Store")
-                                }
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(storeName.isEmpty ? Color.gray : Color.accentColor)
-                                .foregroundColor(.white)
-                                .cornerRadius(12)
-                            }
-                            .disabled(storeName.isEmpty || isCreating)
-                        }
-
-                        if let error = errorMessage {
-                            Text(error)
-                                .foregroundColor(.red)
-                                .font(.caption)
-                                .padding()
-                                .background(Color.red.opacity(0.1))
-                                .cornerRadius(8)
-                        }
-
-                        if showStoreCreated {
-                            VStack(alignment: .leading, spacing: 16) {
-                                VStack(alignment: .leading, spacing: 12) {
-                                    Label {
-                                        Text("Store Created Successfully!")
-                                    } icon: {
-                                        Image(systemName: "checkmark.circle.fill")
-                                            .foregroundColor(.green)
-                                    }
-                                    .font(.headline)
-                                    .foregroundColor(.green)
-
-                                    VStack(alignment: .leading, spacing: 8) {
-                                        Text("Store ID (Save this!):")
-                                            .font(.subheadline)
-                                            .fontWeight(.semibold)
-
-                                        HStack {
-                                            Text(createdStoreId)
-                                                .font(.system(.body, design: .monospaced))
-                                                .foregroundColor(.primary)
-                                                .padding(8)
-                                                .background(Color(.systemGray6))
-                                                .cornerRadius(8)
-                                                .textSelection(.enabled)
-
-                                            Button(action: {
-                                                #if os(macOS)
-                                                NSPasteboard.general.clearContents()
-                                                NSPasteboard.general.setString(createdStoreId, forType: .string)
-                                                #else
-                                                UIPasteboard.general.string = createdStoreId
-                                                #endif
-                                            }) {
-                                                Image(systemName: "doc.on.doc")
-                                                    .foregroundColor(.accentColor)
-                                            }
-                                            .buttonStyle(BorderlessButtonStyle())
-                                        }
-                                    }
-                                }
-                                .padding()
-                                .background(Color.green.opacity(0.1))
-                                .cornerRadius(12)
-
-                                NavigationLink(
-                                    destination: DocumentCreateViewWithStore(
-                                        freeTokenClient: freeTokenClient,
-                                        documentLoader: documentLoader,
-                                        privateDocumentStoreId: createdStoreId
-                                    ),
-                                    isActive: $navigateToCreateDocument
-                                ) {
-                                    Button(action: {
-                                        navigateToCreateDocument = true
-                                    }) {
-                                        HStack {
-                                            Image(systemName: "doc.badge.plus")
-                                            Text("Add Document to This Store")
-                                        }
-                                        .frame(maxWidth: .infinity)
-                                        .padding()
-                                        .background(Color.blue)
-                                        .foregroundColor(.white)
-                                        .cornerRadius(12)
-                                    }
-                                }
-                                .buttonStyle(PlainButtonStyle())
-                            }
-                            .transition(.move(edge: .top).combined(with: .opacity))
-                            .animation(.spring(), value: showStoreCreated)
-                        }
                     }
-                    .padding()
                 }
             }
-            .navigationTitle("Create Private Document Store")
+            .navigationTitle("PRIVATE DOCUMENT STORE")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(CyberpunkTheme.Colors.cyberPanel, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
         }
     }
 
@@ -222,104 +260,116 @@ struct DocumentCreateViewWithStore: View {
     }
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 28) {
-                VStack(alignment: .leading, spacing: 16) {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Label {
-                            Text("Adding document to private store")
-                        } icon: {
-                            Image(systemName: "lock.doc")
-                                .foregroundColor(.green)
-                        }
-                        .font(.headline)
+        ZStack {
+            // Cyberpunk background
+            CyberpunkTheme.Gradients.backgroundGradient
+                .ignoresSafeArea()
 
-                        Text("Store ID: \(privateDocumentStoreId)")
-                            .font(.system(.caption, design: .monospaced))
-                            .foregroundColor(.secondary)
-                            .padding(6)
-                            .background(Color(.systemGray6))
-                            .cornerRadius(6)
+            ScrollView {
+                VStack(spacing: 28) {
+                    VStack(alignment: .leading, spacing: 16) {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Label {
+                                Text("ADDING DOCUMENT TO PRIVATE STORE")
+                                    .font(.system(size: 14, weight: .bold))
+                                    .textCase(.uppercase)
+                                    .kerning(1.2)
+                            } icon: {
+                                Image(systemName: "lock.doc")
+                                    .foregroundColor(CyberpunkTheme.Colors.cyberGreen)
+                                    .neonGlow(color: CyberpunkTheme.Colors.cyberGreen, radius: 2)
+                            }
+                            .foregroundColor(CyberpunkTheme.Colors.cyberGreen)
+
+                            Text("STORE ID: \(privateDocumentStoreId)")
+                                .font(.system(size: 11, weight: .regular, design: .monospaced))
+                                .foregroundColor(CyberpunkTheme.Colors.cyberCyan)
+                                .padding(6)
+                                .background(CyberpunkTheme.Colors.cyberPanel)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 6)
+                                        .stroke(CyberpunkTheme.Colors.cyberCyan.opacity(0.3), lineWidth: 1)
+                                )
+                        }
+                        .padding()
+                        .background(CyberpunkTheme.Colors.cyberGreen.opacity(0.1))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(CyberpunkTheme.Colors.cyberGreen.opacity(0.3), lineWidth: 1)
+                        )
+
+                        DocumentCreateFieldView(
+                            title: "User Defined Metadata (optional)",
+                            placeholder: "Title: My Doc, URL: www.example.com",
+                            text: $documentMetadata,
+                            height: 60,
+                            isMultiline: true
+                        )
+
+                        DocumentCreateFieldView(
+                            title: "Text-only Content of the Document",
+                            placeholder: "Hello, world!",
+                            text: $documentBody,
+                            height: 180,
+                            isMultiline: true
+                        )
+
+                        DocumentCreateFieldView(
+                            title: "String scope to use when looking up documents in Agents or via the API",
+                            placeholder: "blog-posts",
+                            text: $searchScope,
+                            height: 180,
+                            isMultiline: false
+                        )
+
+                        FormActionsView(
+                            primaryLabel: "Create Document in Private Store",
+                            canPrimary: canSubmit,
+                            showValidationError: showValidationError,
+                            validationErrorMessage: "Please fill in required fields.",
+                            showClear: createdDocument != nil || !statusMessage.isEmpty,
+                            clearLabel: "Clear",
+                            onPrimary: {
+                                if canSubmit {
+                                    showValidationError = false
+                                    createDocument()
+                                } else {
+                                    showValidationError = true
+                                }
+                            },
+                            onClear: {
+                                documentMetadata = ""
+                                documentBody = ""
+                                searchScope = ""
+                                statusMessage = ""
+                                showValidationError = false
+                                documentStatus = .loading
+                                createdDocument = nil
+                            }
+                        )
+
+                        if let document = createdDocument {
+                            DocumentCreateResultView(document: document)
+                                .padding(.top, 8)
+                                .transition(.move(edge: .top).combined(with: .opacity))
+                                .animation(.spring(), value: createdDocument != nil)
+                        } else if !statusMessage.isEmpty {
+                            DocumentStatusView(message: statusMessage, status: documentStatus)
+                                .transition(.opacity)
+                                .animation(.easeInOut, value: statusMessage)
+                        }
                     }
                     .padding()
-                    .background(Color.green.opacity(0.1))
-                    .cornerRadius(12)
-
-                    DocumentCreateFieldView(
-                        title: "User Defined Metadata (optional)",
-                        placeholder: "Title: My Doc, URL: www.example.com",
-                        text: $documentMetadata,
-                        height: 60,
-                        isMultiline: true
-                    )
-
-                    DocumentCreateFieldView(
-                        title: "Text-only Content of the Document",
-                        placeholder: "Hello, world!",
-                        text: $documentBody,
-                        height: 180,
-                        isMultiline: true
-                    )
-
-                    DocumentCreateFieldView(
-                        title: "String scope to use when looking up documents in Agents or via the API",
-                        placeholder: "blog-posts",
-                        text: $searchScope,
-                        height: 180,
-                        isMultiline: false
-                    )
-
-                    FormActionsView(
-                        primaryLabel: "Create Document in Private Store",
-                        canPrimary: canSubmit,
-                        showValidationError: showValidationError,
-                        validationErrorMessage: "Please fill in required fields.",
-                        showClear: createdDocument != nil || !statusMessage.isEmpty,
-                        clearLabel: "Clear",
-                        onPrimary: {
-                            if canSubmit {
-                                showValidationError = false
-                                createDocument()
-                            } else {
-                                showValidationError = true
-                            }
-                        },
-                        onClear: {
-                            documentMetadata = ""
-                            documentBody = ""
-                            searchScope = ""
-                            statusMessage = ""
-                            showValidationError = false
-                            documentStatus = .loading
-                            createdDocument = nil
-                        }
-                    )
-
-                    if let document = createdDocument {
-                        DocumentCreateResultView(document: document)
-                            .padding(.top, 8)
-                            .transition(.move(edge: .top).combined(with: .opacity))
-                            .animation(.spring(), value: createdDocument != nil)
-                    } else if !statusMessage.isEmpty {
-                        DocumentStatusView(message: statusMessage, status: documentStatus)
-                            .transition(.opacity)
-                            .animation(.easeInOut, value: statusMessage)
-                    }
+                    .cyberPanel()
+                    .shadow(color: CyberpunkTheme.Colors.cyberMagenta.opacity(0.2), radius: 10)
                 }
                 .padding()
-                .background(
-                    RoundedRectangle(cornerRadius: 18)
-                        .fill(LinearGradient(
-                            gradient: Gradient(colors: [Color(.systemBackground), Color(.systemGray6)]),
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ))
-                )
-                .shadow(color: Color.black.opacity(0.07), radius: 6, x: 0, y: 2)
             }
-            .padding()
         }
-        .navigationTitle("Create Private Document")
+        .navigationTitle("CREATE PRIVATE DOCUMENT")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(CyberpunkTheme.Colors.cyberPanel, for: .navigationBar)
+        .toolbarBackground(.visible, for: .navigationBar)
     }
 
     private func createDocument() {

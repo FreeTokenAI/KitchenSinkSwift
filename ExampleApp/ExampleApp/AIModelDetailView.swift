@@ -8,7 +8,7 @@ struct AIModelDetailView: View {
     @State private var showDeleteConfirmation = false
 
     private var modelTypeColor: Color {
-        model.cloudOnly ? .blue : .green
+        model.cloudOnly ? CyberpunkTheme.Colors.cyberCyan : CyberpunkTheme.Colors.cyberGreen
     }
 
     private var modelTypeIcon: String {
@@ -16,170 +16,203 @@ struct AIModelDetailView: View {
     }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
-                VStack(alignment: .center, spacing: 16) {
-                    Image(systemName: modelTypeIcon)
-                        .font(.system(size: 60))
-                        .foregroundColor(modelTypeColor)
+        ZStack {
+            // Cyberpunk background
+            CyberpunkTheme.Gradients.backgroundGradient
+                .ignoresSafeArea()
 
-                    Text(model.name)
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 24) {
+                    VStack(alignment: .center, spacing: 16) {
+                        Image(systemName: modelTypeIcon)
+                            .font(.system(size: 60))
+                            .foregroundColor(modelTypeColor)
+                            .neonGlow(color: modelTypeColor, radius: 3)
 
-                    HStack(spacing: 12) {
-                        Label(
-                            model.cloudOnly ? "Cloud Model" : "Local Model",
-                            systemImage: modelTypeIcon
-                        )
-                        .font(.callout)
-                        .foregroundColor(modelTypeColor)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(modelTypeColor.opacity(0.1))
-                        .cornerRadius(8)
+                        Text(model.name.uppercased())
+                            .font(.system(size: 24, weight: .bold))
+                            .textCase(.uppercase)
+                            .kerning(2)
+                            .foregroundColor(CyberpunkTheme.Colors.cyberGold)
+                            .neonGlow(color: CyberpunkTheme.Colors.cyberGold, radius: 2)
+
+                        HStack(spacing: 12) {
+                            Label(
+                                model.cloudOnly ? "CLOUD MODEL" : "LOCAL MODEL",
+                                systemImage: modelTypeIcon
+                            )
+                            .font(.system(size: 12, weight: .semibold))
+                            .textCase(.uppercase)
+                            .kerning(0.8)
+                            .foregroundColor(modelTypeColor)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(modelTypeColor.opacity(0.2))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(modelTypeColor.opacity(0.5), lineWidth: 1)
+                            )
+                        }
                     }
-                }
-                .frame(maxWidth: .infinity)
-                .padding()
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .cyberPanel()
 
-                VStack(alignment: .leading, spacing: 20) {
-                    DetailSection(title: "Model Information") {
-                        DetailRow(label: "Model Code", value: model.code)
-                        DetailRow(label: "Training Cutoff Date", value: model.trainingCutoffDate)
-                        DetailRow(
-                            label: "JSON Tool Calls",
-                            value: model.jsonToolCalls ? "Supported" : "Not Supported",
-                            valueColor: model.jsonToolCalls ? .green : .secondary
-                        )
-                    }
+                    VStack(alignment: .leading, spacing: 20) {
+                        DetailSection(title: "MODEL INFORMATION") {
+                            DetailRow(label: "MODEL CODE", value: model.code.uppercased())
+                            DetailRow(label: "TRAINING CUTOFF", value: model.trainingCutoffDate.uppercased())
+                            DetailRow(
+                                label: "JSON TOOL CALLS",
+                                value: model.jsonToolCalls ? "SUPPORTED" : "NOT SUPPORTED",
+                                valueColor: model.jsonToolCalls ? CyberpunkTheme.Colors.cyberGreen : CyberpunkTheme.Colors.cyberMagenta
+                            )
+                        }
 
-                    DetailSection(title: "Capabilities") {
-                        CapabilityRow(
-                            label: "Text Processing",
-                            supported: model.capabilities.text
-                        )
-                        CapabilityRow(
-                            label: "Image to Text",
-                            supported: model.capabilities.imageToText
-                        )
-                    }
+                        DetailSection(title: "CAPABILITIES") {
+                            CapabilityRow(
+                                label: "TEXT PROCESSING",
+                                supported: model.capabilities.text
+                            )
+                            CapabilityRow(
+                                label: "IMAGE TO TEXT",
+                                supported: model.capabilities.imageToText
+                            )
+                        }
 
-                    DetailSection(title: "Recommended Platforms") {
-                        PlatformRow(
-                            platform: "macOS",
-                            recommended: model.recommendedPlatforms.macOS
-                        )
-                        PlatformRow(
-                            platform: "iOS",
-                            recommended: model.recommendedPlatforms.iOS
-                        )
-                    }
+                        DetailSection(title: "RECOMMENDED PLATFORMS") {
+                            PlatformRow(
+                                platform: "MACOS",
+                                recommended: model.recommendedPlatforms.macOS
+                            )
+                            PlatformRow(
+                                platform: "IOS",
+                                recommended: model.recommendedPlatforms.iOS
+                            )
+                        }
 
-                    if !model.cloudOnly {
-                        VStack(spacing: 12) {
-                            if viewModel.currentlyDownloadingModel == model.code {
-                                VStack(spacing: 8) {
-                                    ProgressView(value: viewModel.downloadProgress / 100.0)
-                                        .progressViewStyle(LinearProgressViewStyle())
+                        if !model.cloudOnly {
+                            VStack(spacing: 12) {
+                                if viewModel.currentlyDownloadingModel == model.code {
+                                    VStack(spacing: 8) {
+                                        ProgressView(value: viewModel.downloadProgress / 100.0)
+                                            .tint(CyberpunkTheme.Colors.cyberCyan)
+                                            .progressViewStyle(LinearProgressViewStyle())
 
-                                    Text("Downloading: \(Int(viewModel.downloadProgress))%")
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                }
-                                .padding()
-                                .background(Color(.systemGray6))
-                                .cornerRadius(12)
-                            } else if downloadComplete || viewModel.isModelDownloaded(model.code) {
-                                VStack(spacing: 12) {
-                                    HStack {
-                                        Image(systemName: "checkmark.circle.fill")
-                                            .foregroundColor(.green)
-                                        Text("Model Downloaded")
-                                            .font(.callout)
-                                            .foregroundColor(.green)
+                                        Text("DOWNLOADING: \(Int(viewModel.downloadProgress))%")
+                                            .font(.system(size: 12, weight: .medium))
+                                            .textCase(.uppercase)
+                                            .kerning(0.8)
+                                            .foregroundColor(CyberpunkTheme.Colors.cyberCyan)
                                     }
                                     .padding()
-                                    .frame(maxWidth: .infinity)
-                                    .background(Color.green.opacity(0.1))
-                                    .cornerRadius(12)
+                                    .cyberPanel()
+                                } else if downloadComplete || viewModel.isModelDownloaded(model.code) {
+                                    VStack(spacing: 12) {
+                                        HStack {
+                                            Image(systemName: "checkmark.circle.fill")
+                                                .foregroundColor(CyberpunkTheme.Colors.cyberGreen)
+                                                .neonGlow(color: CyberpunkTheme.Colors.cyberGreen, radius: 2)
+                                            Text("MODEL DOWNLOADED")
+                                                .font(.system(size: 14, weight: .bold))
+                                                .textCase(.uppercase)
+                                                .kerning(1.2)
+                                                .foregroundColor(CyberpunkTheme.Colors.cyberGreen)
+                                        }
+                                        .padding()
+                                        .frame(maxWidth: .infinity)
+                                        .background(CyberpunkTheme.Colors.cyberGreen.opacity(0.1))
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 12)
+                                                .stroke(CyberpunkTheme.Colors.cyberGreen.opacity(0.5), lineWidth: 1)
+                                        )
 
+                                        Button(action: {
+                                            showDeleteConfirmation = true
+                                        }) {
+                                            HStack {
+                                                Image(systemName: "trash.fill")
+                                                Text("DELETE MODEL")
+                                            }
+                                            .font(.system(size: 14, weight: .bold))
+                                            .textCase(.uppercase)
+                                            .kerning(1.2)
+                                            .foregroundColor(.red)
+                                            .frame(maxWidth: .infinity)
+                                            .padding()
+                                            .background(
+                                                RoundedRectangle(cornerRadius: 12)
+                                                    .fill(Color.red.opacity(0.1))
+                                                    .overlay(
+                                                        RoundedRectangle(cornerRadius: 12)
+                                                            .stroke(Color.red.opacity(0.5), lineWidth: 1)
+                                                    )
+                                            )
+                                        }
+                                        .buttonStyle(PlainButtonStyle())
+                                    }
+                                } else {
                                     Button(action: {
-                                        showDeleteConfirmation = true
+                                        Task {
+                                            await downloadModel()
+                                        }
                                     }) {
                                         HStack {
-                                            Image(systemName: "trash.fill")
-                                            Text("Delete Model")
+                                            Image(systemName: "arrow.down.circle.fill")
+                                            Text("DOWNLOAD MODEL")
                                         }
-                                        .font(.callout)
-                                        .foregroundColor(.red)
+                                        .font(.system(size: 14, weight: .bold))
+                                        .textCase(.uppercase)
+                                        .kerning(1.2)
                                         .frame(maxWidth: .infinity)
-                                        .padding()
-                                        .background(
-                                            RoundedRectangle(cornerRadius: 12)
-                                                .fill(Color.red.opacity(0.1))
-                                                .overlay(
-                                                    RoundedRectangle(cornerRadius: 12)
-                                                        .stroke(Color.red.opacity(0.3), lineWidth: 1)
-                                                )
-                                        )
                                     }
-                                    .buttonStyle(PlainButtonStyle())
+                                    .cyberButton()
+                                    .disabled(viewModel.currentlyDownloadingModel == model.code)
                                 }
-                            } else {
-                                Button(action: {
-                                    Task {
-                                        await downloadModel()
-                                    }
-                                }) {
-                                    HStack {
-                                        Image(systemName: "arrow.down.circle.fill")
-                                        Text("Download Model")
-                                    }
-                                    .font(.headline)
-                                    .foregroundColor(.white)
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(Color.accentColor)
-                                    .cornerRadius(12)
-                                }
-                                .disabled(viewModel.currentlyDownloadingModel == model.code)
                             }
+                            .padding(.top)
                         }
-                        .padding(.top)
-                    }
 
-                    if let errorMessage = viewModel.errorMessage {
-                        Text(errorMessage)
-                            .font(.callout)
-                            .foregroundColor(.red)
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(Color.red.opacity(0.1))
-                            .cornerRadius(12)
+                        if let errorMessage = viewModel.errorMessage {
+                            Text(errorMessage.uppercased())
+                                .font(.system(size: 12, weight: .medium))
+                                .textCase(.uppercase)
+                                .kerning(0.8)
+                                .foregroundColor(.red)
+                                .neonGlow(color: .red, radius: 2)
+                                .padding()
+                                .frame(maxWidth: .infinity)
+                                .background(Color.red.opacity(0.1))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(Color.red.opacity(0.5), lineWidth: 1)
+                                )
+                        }
                     }
+                    .padding()
                 }
-                .padding()
             }
         }
-        .navigationTitle("Model Details")
+        .navigationTitle("MODEL DETAILS")
         .navigationBarTitleDisplayMode(.inline)
-        .alert("Delete Model", isPresented: $showDeleteConfirmation) {
-            Button("Cancel", role: .cancel) { }
-            Button("Delete", role: .destructive) {
+        .toolbarBackground(CyberpunkTheme.Colors.cyberPanel, for: .navigationBar)
+        .toolbarBackground(.visible, for: .navigationBar)
+        .alert("DELETE MODEL", isPresented: $showDeleteConfirmation) {
+            Button("CANCEL", role: .cancel) { }
+            Button("DELETE", role: .destructive) {
                 Task {
                     await deleteModel()
                 }
             }
         } message: {
-            Text("Are you sure you want to delete '\(model.name)'? You can download it again later if needed.")
+            Text("ARE YOU SURE YOU WANT TO DELETE '\(model.name.uppercased())'? YOU CAN DOWNLOAD IT AGAIN LATER IF NEEDED.")
         }
-        .alert("Model Not Supported", isPresented: $viewModel.showUnsupportedAlert) {
+        .alert("MODEL NOT SUPPORTED", isPresented: $viewModel.showUnsupportedAlert) {
             Button("OK", role: .cancel) {
                 viewModel.showUnsupportedAlert = false
             }
         } message: {
-            Text("This device does not meet the requirements for on-device AI for \(viewModel.unsupportedModelName).")
+            Text("THIS DEVICE DOES NOT MEET THE REQUIREMENTS FOR ON-DEVICE AI FOR \(viewModel.unsupportedModelName.uppercased()).")
         }
     }
 
@@ -209,16 +242,17 @@ struct DetailSection<Content: View>: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(title)
-                .font(.headline)
-                .foregroundColor(.primary)
+                .font(.system(size: 14, weight: .bold))
+                .textCase(.uppercase)
+                .kerning(1.2)
+                .foregroundColor(CyberpunkTheme.Colors.cyberGold)
 
             VStack(alignment: .leading, spacing: 8) {
                 content
             }
             .padding()
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color(.systemGray6))
-            .cornerRadius(12)
+            .cyberPanel()
         }
     }
 }
@@ -226,17 +260,20 @@ struct DetailSection<Content: View>: View {
 struct DetailRow: View {
     let label: String
     let value: String
-    var valueColor: Color = .primary
+    var valueColor: Color = CyberpunkTheme.Colors.cyberCyan
 
     var body: some View {
         HStack {
             Text(label)
-                .font(.subheadline)
-                .foregroundColor(.secondary)
+                .font(.system(size: 12, weight: .medium))
+                .textCase(.uppercase)
+                .kerning(0.8)
+                .foregroundColor(CyberpunkTheme.Colors.cyberBlueLight)
             Spacer()
             Text(value)
-                .font(.subheadline)
-                .fontWeight(.medium)
+                .font(.system(size: 12, weight: .bold))
+                .textCase(.uppercase)
+                .kerning(0.8)
                 .foregroundColor(valueColor)
         }
     }
@@ -249,11 +286,14 @@ struct CapabilityRow: View {
     var body: some View {
         HStack {
             Text(label)
-                .font(.subheadline)
-                .foregroundColor(.secondary)
+                .font(.system(size: 12, weight: .medium))
+                .textCase(.uppercase)
+                .kerning(0.8)
+                .foregroundColor(CyberpunkTheme.Colors.cyberBlueLight)
             Spacer()
             Image(systemName: supported ? "checkmark.circle.fill" : "xmark.circle.fill")
-                .foregroundColor(supported ? .green : .red.opacity(0.6))
+                .foregroundColor(supported ? CyberpunkTheme.Colors.cyberGreen : CyberpunkTheme.Colors.cyberMagenta.opacity(0.6))
+                .neonGlow(color: supported ? CyberpunkTheme.Colors.cyberGreen : CyberpunkTheme.Colors.cyberMagenta, radius: 2)
         }
     }
 }
@@ -265,21 +305,28 @@ struct PlatformRow: View {
     var body: some View {
         HStack {
             HStack(spacing: 8) {
-                Image(systemName: platform == "macOS" ? "macbook" : "iphone")
-                    .foregroundColor(.secondary)
+                Image(systemName: platform == "MACOS" ? "macbook" : "iphone")
+                    .foregroundColor(CyberpunkTheme.Colors.cyberBlueLight)
                 Text(platform)
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .font(.system(size: 12, weight: .medium))
+                    .textCase(.uppercase)
+                    .kerning(0.8)
+                    .foregroundColor(CyberpunkTheme.Colors.cyberBlueLight)
             }
             Spacer()
             if recommended {
-                Label("Recommended", systemImage: "star.fill")
-                    .font(.caption)
-                    .foregroundColor(.orange)
+                Label("RECOMMENDED", systemImage: "star.fill")
+                    .font(.system(size: 11, weight: .bold))
+                    .textCase(.uppercase)
+                    .kerning(0.6)
+                    .foregroundColor(CyberpunkTheme.Colors.cyberGold)
+                    .neonGlow(color: CyberpunkTheme.Colors.cyberGold, radius: 2)
             } else {
-                Text("Not Recommended")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                Text("NOT RECOMMENDED")
+                    .font(.system(size: 11, weight: .medium))
+                    .textCase(.uppercase)
+                    .kerning(0.6)
+                    .foregroundColor(CyberpunkTheme.Colors.cyberMagenta)
             }
         }
     }

@@ -4,115 +4,148 @@ struct TokenSetupView: View {
     @ObservedObject var freeTokenClient: FreeTokenClient
     @State private var appToken: String = FreeTokenClient.DEFAULT_APP_TOKEN
     @State private var isTokenValid: Bool = true
+    @State private var isTextFieldFocused: Bool = false
 
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                // Background gradient
-                LinearGradient(
-                    gradient: Gradient(colors: [Color(.systemBackground), Color(.secondarySystemBackground)]),
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .ignoresSafeArea()
+                // Cyberpunk Background gradient
+                CyberpunkTheme.Gradients.backgroundGradient
+                    .ignoresSafeArea()
 
                 VStack(spacing: 0) {
                     Spacer()
 
-                    // Header
-                    VStack(spacing: 16) {
-                        Image(systemName: "key.fill")
-                            .font(.system(size: 60))
-                            .foregroundColor(.accentColor)
+                    // Header with Logo
+                    VStack(spacing: 20) {
+                        // Logo
+                        Image("Logo")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 120, height: 120)
+                            .pulseEffect()
 
-                        Text("FreeToken Kitchen Sink")
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
+                        VStack(spacing: 8) {
+                            Text("FREETOKEN")
+                                .font(.system(size: 36, weight: .bold))
+                                .textCase(.uppercase)
+                                .kerning(4)
+                                .foregroundStyle(CyberpunkTheme.Gradients.goldGradient)
+                                .shadow(color: CyberpunkTheme.Colors.cyberGold.opacity(0.5), radius: 10)
 
-                        Text("Review and confirm your app token")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
+                            Text("KITCHEN SINK")
+                                .font(.system(size: 20, weight: .semibold))
+                                .textCase(.uppercase)
+                                .kerning(3)
+                                .foregroundColor(CyberpunkTheme.Colors.cyberCyan)
+                                .shadow(color: CyberpunkTheme.Colors.cyberCyan.opacity(0.5), radius: 5)
+                        }
+
+                        Text("AUTHENTICATE YOUR APP TOKEN")
+                            .font(.system(size: 12, weight: .medium))
+                            .textCase(.uppercase)
+                            .kerning(1.5)
+                            .foregroundColor(CyberpunkTheme.Colors.cyberMagenta)
                     }
                     .padding(.bottom, 40)
 
                     // Token Entry Container
                     VStack(alignment: .center, spacing: 20) {
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("App Token")
-                                .font(.headline)
-                                .foregroundColor(.primary)
+                            Text("APP TOKEN")
+                                .font(.system(size: 14, weight: .bold))
+                                .textCase(.uppercase)
+                                .kerning(1.5)
+                                .foregroundColor(CyberpunkTheme.Colors.cyberCyan)
 
-                            TextField("app_tkn_...", text: $appToken)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                                .autocapitalization(.none)
-                                .disableAutocorrection(true)
-                                .onChange(of: appToken) { _ in
-                                    isTokenValid = appToken.starts(with: "app_tkn_") && appToken.count > 10
-                                }
-                                .frame(maxWidth: 400)
+                            TextField("app_tkn_...", text: $appToken, onEditingChanged: { editing in
+                                isTextFieldFocused = editing
+                            })
+                            .textFieldStyle(PlainTextFieldStyle())
+                            .cyberTextField(isEditing: $isTextFieldFocused)
+                            .autocapitalization(.none)
+                            .disableAutocorrection(true)
+                            .font(.system(.body, design: .monospaced))
+                            .onChange(of: appToken) { _ in
+                                isTokenValid = appToken.starts(with: "app_tkn_") && appToken.count > 10
+                            }
+                            .frame(maxWidth: 400)
 
-                            Text("Modify the token above or paste a new one")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
+                            Text("MODIFY THE TOKEN OR PASTE A NEW ONE")
+                                .font(.system(size: 10, weight: .medium))
+                                .textCase(.uppercase)
+                                .kerning(0.8)
+                                .foregroundColor(CyberpunkTheme.Colors.cyberBlueLight)
                         }
                         .frame(maxWidth: 400)
 
-                        // Helpful info box
+                        // Helpful info box with cyberpunk styling
                         VStack(alignment: .leading, spacing: 12) {
-                            Label("Developer Note", systemImage: "info.circle.fill")
-                                .font(.subheadline)
-                                .fontWeight(.semibold)
-                                .foregroundColor(.blue)
+                            HStack {
+                                Image(systemName: "info.circle.fill")
+                                    .foregroundColor(CyberpunkTheme.Colors.cyberMagenta)
+                                    .neonGlow(color: CyberpunkTheme.Colors.cyberMagenta, radius: 5)
+                                Text("DEVELOPER NOTE")
+                                    .font(.system(size: 12, weight: .bold))
+                                    .textCase(.uppercase)
+                                    .kerning(1)
+                                    .foregroundColor(CyberpunkTheme.Colors.cyberMagenta)
+                            }
 
-                            Text("Default token loaded from:\n`FreeTokenClient.swift` line 7\nYou can modify it above before registering")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
+                            Text("DEFAULT TOKEN LOADED FROM:\n`FREETOKENCLIENT.SWIFT` LINE 7\nMODIFY BEFORE REGISTERING")
+                                .font(.system(size: 11, design: .monospaced))
+                                .textCase(.uppercase)
+                                .foregroundColor(CyberpunkTheme.Colors.cyberBlueLight)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
                         .padding()
                         .frame(maxWidth: 400)
-                        .background(
-                            RoundedRectangle(cornerRadius: 10)
-                                .fill(Color.blue.opacity(0.1))
-                        )
+                        .cyberPanel()
 
-                        // Registration button
+                        // Registration button with cyberpunk styling
                         Button(action: {
                             Task {
                                 await freeTokenClient.registerDevice(with: appToken)
                             }
                         }) {
-                            HStack {
+                            HStack(spacing: 12) {
                                 if freeTokenClient.isRegistering {
                                     ProgressView()
-                                        .progressViewStyle(CircularProgressViewStyle())
+                                        .progressViewStyle(CircularProgressViewStyle(tint: .black))
                                         .scaleEffect(0.8)
                                 } else {
-                                    Image(systemName: "arrow.right.circle.fill")
+                                    Image(systemName: "chevron.right.2")
+                                        .font(.system(size: 16, weight: .bold))
                                 }
-                                Text("Register with Token")
+                                Text("REGISTER WITH TOKEN")
+                                    .font(.system(size: 14, weight: .bold))
+                                    .textCase(.uppercase)
+                                    .kerning(2)
                             }
-                            .frame(width: 400)
-                            .padding()
-                            .background(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .fill(freeTokenClient.isRegistering ? Color.gray : Color.accentColor)
-                            )
-                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .cyberButton(isPrimary: !freeTokenClient.isRegistering && isTokenValid)
                         }
                         .disabled(freeTokenClient.isRegistering || appToken.isEmpty || !isTokenValid)
+                        .frame(maxWidth: 400)
+                        .padding(.horizontal)
 
-                        // Error display
+                        // Error display with cyberpunk styling
                         if let error = freeTokenClient.registrationError {
                             VStack(alignment: .leading, spacing: 8) {
-                                Label("Registration Failed", systemImage: "exclamationmark.triangle.fill")
-                                    .font(.subheadline)
-                                    .fontWeight(.semibold)
-                                    .foregroundColor(.red)
+                                HStack {
+                                    Image(systemName: "exclamationmark.triangle.fill")
+                                        .foregroundColor(.red)
+                                        .neonGlow(color: .red, radius: 5)
+                                    Text("REGISTRATION FAILED")
+                                        .font(.system(size: 12, weight: .bold))
+                                        .textCase(.uppercase)
+                                        .kerning(1)
+                                        .foregroundColor(.red)
+                                }
 
-                                Text(error)
-                                    .font(.caption)
-                                    .foregroundColor(.red)
+                                Text(error.uppercased())
+                                    .font(.system(size: 11, design: .monospaced))
+                                    .foregroundColor(Color.red.opacity(0.9))
                                     .fixedSize(horizontal: false, vertical: true)
                             }
                             .padding()
@@ -120,7 +153,12 @@ struct TokenSetupView: View {
                             .background(
                                 RoundedRectangle(cornerRadius: 10)
                                     .fill(Color.red.opacity(0.1))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 10)
+                                            .stroke(Color.red.opacity(0.3), lineWidth: 1)
+                                    )
                             )
+                            .shadow(color: .red.opacity(0.3), radius: 10)
                         }
 
                         // Removed model download progress - now shown globally
@@ -128,31 +166,40 @@ struct TokenSetupView: View {
 
                     Spacer()
 
-                    // Footer
+                    // Footer with cyberpunk styling
                     VStack(spacing: 8) {
                         if !appToken.isEmpty && isTokenValid {
-                            HStack {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .foregroundColor(.green)
-                                Text(appToken == FreeTokenClient.DEFAULT_APP_TOKEN ? "Using default token from code" : "Using custom token")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
+                            HStack(spacing: 8) {
+                                Image(systemName: "checkmark.shield.fill")
+                                    .foregroundColor(CyberpunkTheme.Colors.cyberGreen)
+                                    .neonGlow(color: CyberpunkTheme.Colors.cyberGreen, radius: 5)
+                                Text(appToken == FreeTokenClient.DEFAULT_APP_TOKEN ? "USING DEFAULT TOKEN" : "USING CUSTOM TOKEN")
+                                    .font(.system(size: 11, weight: .semibold))
+                                    .textCase(.uppercase)
+                                    .kerning(1)
+                                    .foregroundColor(CyberpunkTheme.Colors.cyberGreen)
                             }
                         } else if !appToken.isEmpty {
-                            HStack {
-                                Image(systemName: "xmark.circle.fill")
-                                    .foregroundColor(.orange)
-                                Text("Token should start with 'app_tkn_'")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
+                            HStack(spacing: 8) {
+                                Image(systemName: "xmark.octagon.fill")
+                                    .foregroundColor(CyberpunkTheme.Colors.cyberOrange)
+                                    .neonGlow(color: CyberpunkTheme.Colors.cyberOrange, radius: 5)
+                                Text("TOKEN MUST START WITH 'APP_TKN_'")
+                                    .font(.system(size: 11, weight: .semibold))
+                                    .textCase(.uppercase)
+                                    .kerning(1)
+                                    .foregroundColor(CyberpunkTheme.Colors.cyberOrange)
                             }
                         } else {
-                            HStack {
-                                Image(systemName: "exclamationmark.circle.fill")
-                                    .foregroundColor(.orange)
-                                Text("Token is required")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
+                            HStack(spacing: 8) {
+                                Image(systemName: "exclamationmark.octagon.fill")
+                                    .foregroundColor(CyberpunkTheme.Colors.cyberOrange)
+                                    .neonGlow(color: CyberpunkTheme.Colors.cyberOrange, radius: 5)
+                                Text("TOKEN REQUIRED")
+                                    .font(.system(size: 11, weight: .semibold))
+                                    .textCase(.uppercase)
+                                    .kerning(1)
+                                    .foregroundColor(CyberpunkTheme.Colors.cyberOrange)
                             }
                         }
                     }

@@ -83,10 +83,12 @@ struct IsolatedTextEditor: View {
     var body: some View {
         TextEditor(text: $text)
             .font(.system(.body, design: .monospaced))
+            .foregroundColor(CyberpunkTheme.Colors.cyberCyan)
             .padding(8)
+            .background(CyberpunkTheme.Colors.cyberPanel)
             .overlay(
                 RoundedRectangle(cornerRadius: 8)
-                    .stroke(Color(.separator), lineWidth: 1)
+                    .stroke(CyberpunkTheme.Colors.cyberCyan.opacity(0.3), lineWidth: 1)
             )
             .frame(minHeight: 200)
             .onChange(of: text) { newText in
@@ -117,93 +119,127 @@ struct TokenCounterView: View {
 
     var body: some View {
         NavigationView {
-            VStack(alignment: .leading, spacing: 20) {
-                // Model selector
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Select Model")
-                        .font(.headline)
-                        .foregroundColor(.primary)
+            ZStack {
+                // Cyberpunk background
+                CyberpunkTheme.Gradients.backgroundGradient
+                    .ignoresSafeArea()
 
-                    if isLoadingModels {
-                        HStack {
-                            ProgressView()
-                                .scaleEffect(0.8)
-                            Text("Loading models...")
-                                .foregroundColor(.secondary)
-                        }
-                        .padding(.vertical, 8)
-                    } else if downloadedModels.isEmpty {
-                        Text("No downloaded models available")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                            .padding(.vertical, 8)
-                    } else {
-                        Picker("Model", selection: $selectedModelCode) {
-                            Text("Default Model").tag(nil as String?)
-                            ForEach(downloadedModels, id: \.code) { model in
-                                Text(model.name).tag(model.code as String?)
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 20) {
+                        // Model selector
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("SELECT MODEL")
+                                .font(.system(size: 14, weight: .bold))
+                                .textCase(.uppercase)
+                                .kerning(1.2)
+                                .foregroundColor(CyberpunkTheme.Colors.cyberGold)
+
+                            if isLoadingModels {
+                                HStack {
+                                    ProgressView()
+                                        .scaleEffect(0.8)
+                                        .tint(CyberpunkTheme.Colors.cyberCyan)
+                                    Text("LOADING MODELS...")
+                                        .font(.system(size: 12, weight: .medium))
+                                        .textCase(.uppercase)
+                                        .kerning(0.8)
+                                        .foregroundColor(CyberpunkTheme.Colors.cyberCyan)
+                                }
+                                .padding(.vertical, 8)
+                            } else if downloadedModels.isEmpty {
+                                Text("NO DOWNLOADED MODELS AVAILABLE")
+                                    .font(.system(size: 11, weight: .medium))
+                                    .textCase(.uppercase)
+                                    .kerning(0.8)
+                                    .foregroundColor(CyberpunkTheme.Colors.cyberMagenta)
+                                    .padding(.vertical, 8)
+                            } else {
+                                Picker("Model", selection: $selectedModelCode) {
+                                    Text("DEFAULT MODEL").tag(nil as String?)
+                                    ForEach(downloadedModels, id: \.code) { model in
+                                        Text(model.name.uppercased()).tag(model.code as String?)
+                                    }
+                                }
+                                .pickerStyle(.menu)
+                                .tint(CyberpunkTheme.Colors.cyberCyan)
+                                .padding(.vertical, 4)
+                                .padding(.horizontal, 12)
+                                .background(CyberpunkTheme.Colors.cyberPanel)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .stroke(CyberpunkTheme.Colors.cyberCyan.opacity(0.3), lineWidth: 1)
+                                )
+                                .onChange(of: selectedModelCode) { _ in
+                                    // Recount tokens when model changes
+                                    if !tokenCounter.currentText.isEmpty {
+                                        tokenCounter.textChanged(tokenCounter.currentText, modelCode: selectedModelCode, client: freeTokenClient.client)
+                                    }
+                                }
                             }
                         }
-                        .pickerStyle(.menu)
-                        .padding(.vertical, 4)
-                        .padding(.horizontal, 12)
-                        .background(Color(.systemGray6))
-                        .cornerRadius(8)
-                        .onChange(of: selectedModelCode) { _ in
-                            // Recount tokens when model changes
-                            if !tokenCounter.currentText.isEmpty {
-                                tokenCounter.textChanged(tokenCounter.currentText, modelCode: selectedModelCode, client: freeTokenClient.client)
+                        .padding()
+                        .cyberPanel()
+
+                        Text("ENTER TEXT TO COUNT TOKENS")
+                            .font(.system(size: 14, weight: .bold))
+                            .textCase(.uppercase)
+                            .kerning(1.2)
+                            .foregroundColor(CyberpunkTheme.Colors.cyberGold)
+                            .padding(.horizontal)
+
+                        // Completely isolated text editor
+                        IsolatedTextEditor(
+                            onTextChange: { newText in
+                                tokenCounter.textChanged(newText, modelCode: selectedModelCode, client: freeTokenClient.client)
+                            },
+                            shouldClear: $shouldClearText
+                        )
+                        .padding(.horizontal)
+
+                        // Token count display - isolated to prevent TextEditor re-renders
+                        TokenCountDisplay(
+                            tokenCount: tokenCounter.tokenCount,
+                            isCounting: tokenCounter.isCounting,
+                            errorMessage: tokenCounter.errorMessage,
+                            inputText: tokenCounter.currentText,
+                            selectedModelCode: selectedModelCode
+                        )
+                        .padding(.horizontal)
+
+                        // Clear button
+                        if !tokenCounter.currentText.isEmpty {
+                            Button(action: {
+                                shouldClearText = true
+                                tokenCounter.clearText()
+                            }) {
+                                Label("CLEAR TEXT", systemImage: "trash")
+                                    .font(.system(size: 14, weight: .bold))
+                                    .textCase(.uppercase)
+                                    .kerning(1.2)
+                                    .frame(maxWidth: .infinity)
                             }
+                            .cyberButton()
+                            .padding(.horizontal)
                         }
+
+                        Spacer()
                     }
+                    .padding(.vertical)
                 }
-
-                Divider()
-
-                Text("Enter text to count tokens")
-                    .font(.headline)
-                    .foregroundColor(.primary)
-
-                // Completely isolated text editor
-                IsolatedTextEditor(
-                    onTextChange: { newText in
-                        tokenCounter.textChanged(newText, modelCode: selectedModelCode, client: freeTokenClient.client)
-                    },
-                    shouldClear: $shouldClearText
-                )
-
-                // Token count display - isolated to prevent TextEditor re-renders
-                TokenCountDisplay(
-                    tokenCount: tokenCounter.tokenCount,
-                    isCounting: tokenCounter.isCounting,
-                    errorMessage: tokenCounter.errorMessage,
-                    inputText: tokenCounter.currentText,
-                    selectedModelCode: selectedModelCode
-                )
-
-                // Clear button
-                if !tokenCounter.currentText.isEmpty {
-                    Button(action: {
-                        shouldClearText = true
-                        tokenCounter.clearText()
-                    }) {
-                        Label("Clear Text", systemImage: "trash")
-                            .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.bordered)
-                    .tint(.orange)
-                }
-
-                Spacer()
             }
-            .padding()
-            .navigationTitle("Token Counter")
+            .navigationTitle("TOKEN COUNTER")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(CyberpunkTheme.Colors.cyberPanel, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") {
+                    Button("DONE") {
                         isPresented = false
                     }
+                    .font(.system(size: 14, weight: .bold))
+                    .textCase(.uppercase)
+                    .kerning(1.2)
+                    .foregroundColor(CyberpunkTheme.Colors.cyberGreen)
                 }
             }
             .onAppear {
@@ -274,33 +310,44 @@ struct TokenCountDisplay: View {
                 if isCounting {
                     ProgressView()
                         .scaleEffect(0.8)
+                        .tint(CyberpunkTheme.Colors.cyberCyan)
                 }
 
                 if tokenCount > 0 || !inputText.isEmpty {
-                    Text("\(tokenCount) tokens")
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(.accentColor)
+                    Text("\(tokenCount) TOKENS")
+                        .font(.system(size: 16, weight: .bold))
+                        .textCase(.uppercase)
+                        .kerning(1.5)
+                        .foregroundColor(CyberpunkTheme.Colors.cyberCyan)
+                        .neonGlow(color: CyberpunkTheme.Colors.cyberCyan, radius: 2)
                 } else {
-                    Text("Start typing to count tokens")
-                        .font(.system(size: 16))
-                        .foregroundColor(.secondary)
+                    Text("START TYPING TO COUNT TOKENS")
+                        .font(.system(size: 14, weight: .medium))
+                        .textCase(.uppercase)
+                        .kerning(1)
+                        .foregroundColor(CyberpunkTheme.Colors.cyberBlueLight)
                 }
 
                 Spacer()
 
                 if let modelCode = selectedModelCode {
-                    Text("(\(modelCode))")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                    Text("(\(modelCode.uppercased()))")
+                        .font(.system(size: 11, weight: .medium, design: .monospaced))
+                        .foregroundColor(CyberpunkTheme.Colors.cyberGold)
                 }
             }
-            .padding(.horizontal, 8)
+            .padding()
+            .cyberPanel()
 
             if let error = errorMessage {
-                Text(error)
-                    .font(.caption)
+                Text(error.uppercased())
+                    .font(.system(size: 11, weight: .medium))
+                    .textCase(.uppercase)
+                    .kerning(0.8)
                     .foregroundColor(.red)
-                    .padding(.horizontal, 8)
+                    .neonGlow(color: .red, radius: 2)
+                    .padding()
+                    .cyberPanel()
             }
         }
     }

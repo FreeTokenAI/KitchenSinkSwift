@@ -38,36 +38,60 @@ struct ChatView: View {
     
     var body: some View {
         ZStack {
-            VStack {
+            // Cyberpunk background
+            CyberpunkTheme.Gradients.backgroundGradient
+                .ignoresSafeArea()
+
+            VStack(spacing: 0) {
                 // Model selector at the top
                 modelSelectorView()
-                Divider()
-                chatContentView()
-                Divider()
+                    .background(CyberpunkTheme.Colors.cyberPanel)
+                    .overlay(
+                        Rectangle()
+                            .frame(height: 1)
+                            .foregroundColor(CyberpunkTheme.Colors.cyberMagenta.opacity(0.3)),
+                        alignment: .bottom
+                    )
 
-                // Status display
+                chatContentView()
+
+                Rectangle()
+                    .frame(height: 1)
+                    .foregroundColor(CyberpunkTheme.Colors.cyberMagenta.opacity(0.3))
+
+                // Status display with cyberpunk styling
                 if let status = chatLoader.currentChatStatus {
                     HStack {
                         ProgressView()
                             .scaleEffect(0.8)
-                        Text(status)
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                            .tint(CyberpunkTheme.Colors.cyberCyan)
+                        Text(status.uppercased())
+                            .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                            .kerning(0.8)
+                            .foregroundColor(CyberpunkTheme.Colors.cyberCyan)
                     }
                     .padding(.horizontal)
                     .padding(.vertical, 8)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(Color(.systemGray6))
+                    .background(CyberpunkTheme.Colors.cyberPanel)
+                    .overlay(
+                        Rectangle()
+                            .frame(height: 1)
+                            .foregroundColor(CyberpunkTheme.Colors.cyberCyan.opacity(0.3)),
+                        alignment: .top
+                    )
                     .animation(.easeInOut(duration: 0.2), value: status)
                 }
 
-                // Token usage stats display - single line with horizontal scroll
+                // Token usage stats display with cyberpunk styling
                 if let tokenUsage = chatLoader.lastTokenUsage {
                     HStack(spacing: 0) {
-                        Text("Stats")
-                            .font(.caption)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.secondary)
+                        Text("STATS")
+                            .font(.system(size: 10, weight: .bold))
+                            .textCase(.uppercase)
+                            .kerning(1.2)
+                            .foregroundColor(CyberpunkTheme.Colors.cyberGold)
+                            .neonGlow(color: CyberpunkTheme.Colors.cyberGold, radius: 3)
                             .padding(.leading, 16)
                             .padding(.trailing, 8)
 
@@ -77,12 +101,15 @@ struct ChatView: View {
                                 if tokenUsage.tokensPerSecond > 0 {
                                     HStack(spacing: 3) {
                                         Image(systemName: "speedometer")
-                                            .font(.caption2)
-                                        Text("Speed:")
-                                            .font(.caption2)
-                                        Text("\(String(format: "%.1f", tokenUsage.tokensPerSecond)) t/s")
-                                            .font(.caption2)
-                                            .fontWeight(.medium)
+                                            .font(.system(size: 10))
+                                            .foregroundColor(CyberpunkTheme.Colors.cyberCyan)
+                                        Text("SPEED:")
+                                            .font(.system(size: 10, weight: .semibold))
+                                            .textCase(.uppercase)
+                                            .foregroundColor(CyberpunkTheme.Colors.cyberBlueLight)
+                                        Text("\(String(format: "%.1f", tokenUsage.tokensPerSecond)) T/S")
+                                            .font(.system(size: 10, weight: .bold, design: .monospaced))
+                                            .foregroundColor(CyberpunkTheme.Colors.cyberCyan)
                                     }
                                 }
 
@@ -90,12 +117,15 @@ struct ChatView: View {
                                 if tokenUsage.totalTokens > 0 {
                                     HStack(spacing: 3) {
                                         Image(systemName: "number.square")
-                                            .font(.caption2)
-                                        Text("Total:")
-                                            .font(.caption2)
+                                            .font(.system(size: 10))
+                                            .foregroundColor(CyberpunkTheme.Colors.cyberMagenta)
+                                        Text("TOTAL:")
+                                            .font(.system(size: 10, weight: .semibold))
+                                            .textCase(.uppercase)
+                                            .foregroundColor(CyberpunkTheme.Colors.cyberBlueLight)
                                         Text("\(tokenUsage.totalTokens)")
-                                            .font(.caption2)
-                                            .fontWeight(.medium)
+                                            .font(.system(size: 10, weight: .bold, design: .monospaced))
+                                            .foregroundColor(CyberpunkTheme.Colors.cyberMagenta)
                                     }
                                 }
 
@@ -103,12 +133,15 @@ struct ChatView: View {
                                 if tokenUsage.inputTokens > 0 {
                                     HStack(spacing: 3) {
                                         Image(systemName: "arrow.down.square")
-                                            .font(.caption2)
-                                        Text("In:")
-                                            .font(.caption2)
+                                            .font(.system(size: 10))
+                                            .foregroundColor(CyberpunkTheme.Colors.cyberGreen)
+                                        Text("IN:")
+                                            .font(.system(size: 10, weight: .semibold))
+                                            .textCase(.uppercase)
+                                            .foregroundColor(CyberpunkTheme.Colors.cyberBlueLight)
                                         Text("\(tokenUsage.inputTokens)")
-                                            .font(.caption2)
-                                            .fontWeight(.medium)
+                                            .font(.system(size: 10, weight: .bold, design: .monospaced))
+                                            .foregroundColor(CyberpunkTheme.Colors.cyberGreen)
                                     }
                                 }
 
@@ -116,12 +149,15 @@ struct ChatView: View {
                                 if tokenUsage.outputTokens > 0 {
                                     HStack(spacing: 3) {
                                         Image(systemName: "arrow.up.square")
-                                            .font(.caption2)
-                                        Text("Out:")
-                                            .font(.caption2)
+                                            .font(.system(size: 10))
+                                            .foregroundColor(CyberpunkTheme.Colors.cyberOrange)
+                                        Text("OUT:")
+                                            .font(.system(size: 10, weight: .semibold))
+                                            .textCase(.uppercase)
+                                            .foregroundColor(CyberpunkTheme.Colors.cyberBlueLight)
                                         Text("\(tokenUsage.outputTokens)")
-                                            .font(.caption2)
-                                            .fontWeight(.medium)
+                                            .font(.system(size: 10, weight: .bold, design: .monospaced))
+                                            .foregroundColor(CyberpunkTheme.Colors.cyberOrange)
                                     }
                                 }
 
@@ -375,8 +411,17 @@ struct ChatView: View {
                         .foregroundColor(.secondary)
                         .frame(width: 160, alignment: .leading)
                     TextField("Search scope...", text: $chatLoader.documentSearchScope)
-                        .textFieldStyle(.roundedBorder)
-                        .font(.caption)
+                        .font(.system(.caption, design: .monospaced))
+                        .foregroundColor(.white)
+                        .padding(8)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(CyberpunkTheme.Colors.cyberPanel)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .stroke(CyberpunkTheme.Colors.cyberCyan.opacity(0.3), lineWidth: 1)
+                                )
+                        )
                         .focused($focusedConfigField, equals: .documentSearch)
                 }
 
@@ -387,8 +432,17 @@ struct ChatView: View {
                         .foregroundColor(.secondary)
                         .frame(width: 160, alignment: .leading)
                     TextField("Store IDs (comma-separated)...", text: $chatLoader.privateDocumentStoreIds)
-                        .textFieldStyle(.roundedBorder)
-                        .font(.caption)
+                        .font(.system(.caption, design: .monospaced))
+                        .foregroundColor(.white)
+                        .padding(8)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(CyberpunkTheme.Colors.cyberPanel)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .stroke(CyberpunkTheme.Colors.cyberCyan.opacity(0.3), lineWidth: 1)
+                                )
+                        )
                         .focused($focusedConfigField, equals: .privateStores)
                 }
 
@@ -397,17 +451,31 @@ struct ChatView: View {
                     Text("Additional Context:")
                         .font(.caption)
                         .foregroundColor(.secondary)
-                    TextEditor(text: $chatLoader.additionalContext)
-                        .font(.caption)
-                        .frame(minHeight: 60, maxHeight: 100)
-                        .padding(4)
-                        .background(Color(.systemGray6))
-                        .cornerRadius(4)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 4)
-                                .stroke(Color(.systemGray4), lineWidth: 0.5)
-                        )
-                        .focused($focusedConfigField, equals: .additionalContext)
+                    ZStack(alignment: .topLeading) {
+                        if chatLoader.additionalContext.isEmpty {
+                            Text("Text included here will be added to each user message but not persisted to the thread")
+                                .font(.system(.caption, design: .monospaced))
+                                .foregroundColor(CyberpunkTheme.Colors.cyberBlueLight.opacity(0.5))
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 12)
+                                .allowsHitTesting(false)
+                        }
+                        TextEditor(text: $chatLoader.additionalContext)
+                            .font(.system(.caption, design: .monospaced))
+                            .foregroundColor(.white)
+                            .scrollContentBackground(.hidden)
+                            .frame(minHeight: 60, maxHeight: 100)
+                            .padding(8)
+                            .background(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .fill(CyberpunkTheme.Colors.cyberPanel)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .stroke(CyberpunkTheme.Colors.cyberCyan.opacity(0.3), lineWidth: 1)
+                                    )
+                            )
+                            .focused($focusedConfigField, equals: .additionalContext)
+                    }
                 }
             }
             .padding(.vertical, 4)
@@ -490,9 +558,18 @@ struct ChatView: View {
                                 .foregroundColor(.secondary)
                                 .frame(width: 100, alignment: .leading)
                             TextField("2048", value: $chatLoader.maxGenerationTokens, format: .number)
-                                .textFieldStyle(.roundedBorder)
-                                .font(.caption)
+                                .font(.system(.caption, design: .monospaced))
+                                .foregroundColor(.white)
+                                .padding(8)
                                 .frame(width: 80)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .fill(CyberpunkTheme.Colors.cyberPanel)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 8)
+                                                .stroke(CyberpunkTheme.Colors.cyberCyan.opacity(0.3), lineWidth: 1)
+                                        )
+                                )
                                 .focused($focusedConfigField, equals: .maxTokens)
                                 .onSubmit {
                                     Task { await chatLoader.aiRunConfigChanged() }
@@ -509,9 +586,18 @@ struct ChatView: View {
                                 .foregroundColor(.secondary)
                                 .frame(width: 100, alignment: .leading)
                             TextField("4096", value: $chatLoader.contextWindowSize, format: .number)
-                                .textFieldStyle(.roundedBorder)
-                                .font(.caption)
+                                .font(.system(.caption, design: .monospaced))
+                                .foregroundColor(.white)
+                                .padding(8)
                                 .frame(width: 80)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .fill(CyberpunkTheme.Colors.cyberPanel)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 8)
+                                                .stroke(CyberpunkTheme.Colors.cyberCyan.opacity(0.3), lineWidth: 1)
+                                        )
+                                )
                                 .focused($focusedConfigField, equals: .contextSize)
                                 .onSubmit {
                                     Task { await chatLoader.aiRunConfigChanged() }
@@ -528,9 +614,18 @@ struct ChatView: View {
                                 .foregroundColor(.secondary)
                                 .frame(width: 100, alignment: .leading)
                             TextField("0.7", value: $chatLoader.temperature, format: .number)
-                                .textFieldStyle(.roundedBorder)
-                                .font(.caption)
+                                .font(.system(.caption, design: .monospaced))
+                                .foregroundColor(.white)
+                                .padding(8)
                                 .frame(width: 80)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .fill(CyberpunkTheme.Colors.cyberPanel)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 8)
+                                                .stroke(CyberpunkTheme.Colors.cyberCyan.opacity(0.3), lineWidth: 1)
+                                        )
+                                )
                                 .focused($focusedConfigField, equals: .temperature)
                                 .onSubmit {
                                     Task { await chatLoader.aiRunConfigChanged() }
@@ -547,9 +642,18 @@ struct ChatView: View {
                                 .foregroundColor(.secondary)
                                 .frame(width: 100, alignment: .leading)
                             TextField("40", value: $chatLoader.topK, format: .number)
-                                .textFieldStyle(.roundedBorder)
-                                .font(.caption)
+                                .font(.system(.caption, design: .monospaced))
+                                .foregroundColor(.white)
+                                .padding(8)
                                 .frame(width: 80)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .fill(CyberpunkTheme.Colors.cyberPanel)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 8)
+                                                .stroke(CyberpunkTheme.Colors.cyberCyan.opacity(0.3), lineWidth: 1)
+                                        )
+                                )
                                 .focused($focusedConfigField, equals: .topK)
                                 .onSubmit {
                                     Task { await chatLoader.aiRunConfigChanged() }
@@ -566,9 +670,18 @@ struct ChatView: View {
                                 .foregroundColor(.secondary)
                                 .frame(width: 100, alignment: .leading)
                             TextField("0.95", value: $chatLoader.topP, format: .number)
-                                .textFieldStyle(.roundedBorder)
-                                .font(.caption)
+                                .font(.system(.caption, design: .monospaced))
+                                .foregroundColor(.white)
+                                .padding(8)
                                 .frame(width: 80)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .fill(CyberpunkTheme.Colors.cyberPanel)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 8)
+                                                .stroke(CyberpunkTheme.Colors.cyberCyan.opacity(0.3), lineWidth: 1)
+                                        )
+                                )
                                 .focused($focusedConfigField, equals: .topP)
                                 .onSubmit {
                                     Task { await chatLoader.aiRunConfigChanged() }

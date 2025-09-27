@@ -48,35 +48,54 @@ struct CompletionsView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                // Model selector
-                modelSelectorView()
+            ZStack {
+                // Cyberpunk background
+                CyberpunkTheme.Gradients.backgroundGradient
+                    .ignoresSafeArea()
 
-                Divider()
+                VStack(spacing: 0) {
+                    // Model selector
+                    modelSelectorView()
+                        .background(CyberpunkTheme.Colors.cyberPanel)
+                        .overlay(
+                            Rectangle()
+                                .frame(height: 1)
+                                .foregroundColor(CyberpunkTheme.Colors.cyberMagenta.opacity(0.3)),
+                            alignment: .bottom
+                        )
 
-                ScrollView {
-                    VStack(spacing: 16) {
-                        // Input text area
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Enter text to complete:")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
+                    ScrollView {
+                        VStack(spacing: 16) {
+                            // Input text area
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("ENTER TEXT TO COMPLETE")
+                                    .font(.system(size: 12, weight: .bold))
+                                    .textCase(.uppercase)
+                                    .kerning(1.2)
+                                    .foregroundColor(CyberpunkTheme.Colors.cyberCyan)
 
                             TextEditor(text: $inputText)
-                                .font(.body)
+                                .font(.system(.body, design: .monospaced))
+                                .foregroundColor(.white)
+                                .scrollContentBackground(.hidden)
                                 .frame(minHeight: 150, maxHeight: 300)
                                 .padding(8)
-                                .background(Color(.systemGray6))
-                                .cornerRadius(8)
-                                .overlay(
+                                .background(
                                     RoundedRectangle(cornerRadius: 8)
-                                        .stroke(Color(.systemGray4), lineWidth: 0.5)
+                                        .fill(CyberpunkTheme.Colors.cyberPanel)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 8)
+                                                .stroke(CyberpunkTheme.Colors.cyberCyan.opacity(0.3), lineWidth: 1)
+                                        )
                                 )
                                 .overlay(
                                     Group {
                                         if inputText.isEmpty {
-                                            Text("Hybrid AI is...")
-                                                .foregroundColor(.gray.opacity(0.5))
+                                            Text("HYBRID AI IS...")
+                                                .font(.system(size: 14, design: .monospaced))
+                                                .textCase(.uppercase)
+                                                .kerning(0.8)
+                                                .foregroundColor(CyberpunkTheme.Colors.cyberBlueLight.opacity(0.5))
                                                 .padding(.horizontal, 12)
                                                 .padding(.vertical, 16)
                                                 .allowsHitTesting(false)
@@ -91,22 +110,22 @@ struct CompletionsView: View {
                         // AIRunConfig section
                         aiRunConfigSection()
 
-                        // Complete button
+                        // Complete button with cyberpunk styling
                         Button(action: {
                             Task {
                                 await performCompletion()
                             }
                         }) {
-                            HStack {
+                            HStack(spacing: 12) {
                                 Image(systemName: "sparkles")
-                                Text("Complete Text")
+                                    .font(.system(size: 16, weight: .bold))
+                                Text("COMPLETE TEXT")
+                                    .font(.system(size: 14, weight: .bold))
+                                    .textCase(.uppercase)
+                                    .kerning(2)
                             }
-                            .font(.headline)
-                            .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(inputText.isEmpty || isGenerating ? Color.gray : Color.blue)
-                            .cornerRadius(12)
+                            .cyberButton(isPrimary: !inputText.isEmpty && !isGenerating)
                         }
                         .disabled(inputText.isEmpty || isGenerating)
                         .padding(.horizontal)
@@ -115,16 +134,19 @@ struct CompletionsView: View {
                 }
                 .scrollDismissesKeyboard(.interactively)
             }
-            .navigationTitle("Completions")
-            .navigationBarTitleDisplayMode(.inline)
-            .onAppear {
-                Task {
-                    await loadModels()
-                }
+        }
+        .navigationTitle("COMPLETIONS")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(CyberpunkTheme.Colors.cyberPanel, for: .navigationBar)
+        .toolbarBackground(.visible, for: .navigationBar)
+        .onAppear {
+            Task {
+                await loadModels()
             }
         }
         .sheet(isPresented: $showingCompletionModal) {
             completionModalView()
+        }
         }
     }
 
