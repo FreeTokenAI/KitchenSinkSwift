@@ -16,9 +16,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "BC51F5652CF66E6100CAA4DD"
-               BuildableName = "ExampleApp.app"
-               BlueprintName = "ExampleApp"
-               ReferencedContainer = "container:ExampleApp.xcodeproj">
+               BuildableName = "KitchenSink.app"
+               BlueprintName = "KitchenSink"
+               ReferencedContainer = "container:KitchenSink.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -45,9 +45,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "BC51F5652CF66E6100CAA4DD"
-            BuildableName = "ExampleApp.app"
-            BlueprintName = "ExampleApp"
-            ReferencedContainer = "container:ExampleApp.xcodeproj">
+            BuildableName = "KitchenSink.app"
+            BlueprintName = "KitchenSink"
+            ReferencedContainer = "container:KitchenSink.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -62,9 +62,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "BC51F5652CF66E6100CAA4DD"
-            BuildableName = "ExampleApp.app"
-            BlueprintName = "ExampleApp"
-            ReferencedContainer = "container:ExampleApp.xcodeproj">
+            BuildableName = "KitchenSink.app"
+            BlueprintName = "KitchenSink"
+            ReferencedContainer = "container:KitchenSink.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

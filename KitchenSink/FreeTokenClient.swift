@@ -12,7 +12,7 @@ class FreeTokenClient: ObservableObject {
     // 2. Create a new app in the Apps section
     // 3. Generate an App Token in the Manage App Tokens section
     // See: https://docs.freetoken.ai/docs/getting-started
-    static let DEFAULT_APP_TOKEN = "app_tkn_951a73e1-3631-42ea-9a78-e1ae812e75e9"
+    static let DEFAULT_APP_TOKEN = ""
 
     // Encryption key for secure data storage
     // Used with FreeToken's encryption features for protecting sensitive data

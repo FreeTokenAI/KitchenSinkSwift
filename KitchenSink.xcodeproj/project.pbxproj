@@ -25,14 +25,14 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		A4149DA92E296D15005D9F6A /* ExampleAppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ExampleAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		BC51F5662CF66E6100CAA4DD /* ExampleApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ExampleApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A4149DA92E296D15005D9F6A /* KitchenSinkTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KitchenSinkTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		BC51F5662CF66E6100CAA4DD /* KitchenSink.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = KitchenSink.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		BC51F5682CF66E6100CAA4DD /* ExampleApp */ = {
+		BC51F5682CF66E6100CAA4DD /* KitchenSink */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = ExampleApp;
+			path = KitchenSink;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -63,7 +63,7 @@
 		BC51F55D2CF66E6100CAA4DD = {
 			isa = PBXGroup;
 			children = (
-				BC51F5682CF66E6100CAA4DD /* ExampleApp */,
+				BC51F5682CF66E6100CAA4DD /* KitchenSink */,
 				BC51F5672CF66E6100CAA4DD /* Products */,
 			);
 			sourceTree = "<group>";
@@ -71,8 +71,8 @@
 		BC51F5672CF66E6100CAA4DD /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				BC51F5662CF66E6100CAA4DD /* ExampleApp.app */,
-				A4149DA92E296D15005D9F6A /* ExampleAppTests.xctest */,
+				BC51F5662CF66E6100CAA4DD /* KitchenSink.app */,
+				A4149DA92E296D15005D9F6A /* KitchenSinkTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -80,9 +80,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		A4149DA82E296D15005D9F6A /* ExampleAppTests */ = {
+		A4149DA82E296D15005D9F6A /* KitchenSinkTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = A4149DAF2E296D15005D9F6A /* Build configuration list for PBXNativeTarget "ExampleAppTests" */;
+			buildConfigurationList = A4149DAF2E296D15005D9F6A /* Build configuration list for PBXNativeTarget "KitchenSinkTests" */;
 			buildPhases = (
 				A4149DA52E296D15005D9F6A /* Sources */,
 				A4149DA62E296D15005D9F6A /* Frameworks */,
@@ -93,16 +93,16 @@
 			dependencies = (
 				A4149DAE2E296D15005D9F6A /* PBXTargetDependency */,
 			);
-			name = ExampleAppTests;
+			name = KitchenSinkTests;
 			packageProductDependencies = (
 			);
 			productName = ExampleAppTests;
-			productReference = A4149DA92E296D15005D9F6A /* ExampleAppTests.xctest */;
+			productReference = A4149DA92E296D15005D9F6A /* KitchenSinkTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		BC51F5652CF66E6100CAA4DD /* ExampleApp */ = {
+		BC51F5652CF66E6100CAA4DD /* KitchenSink */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = BC51F5742CF66E6200CAA4DD /* Build configuration list for PBXNativeTarget "ExampleApp" */;
+			buildConfigurationList = BC51F5742CF66E6200CAA4DD /* Build configuration list for PBXNativeTarget "KitchenSink" */;
 			buildPhases = (
 				BC51F5622CF66E6100CAA4DD /* Sources */,
 				BC51F5632CF66E6100CAA4DD /* Frameworks */,
@@ -113,9 +113,9 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				BC51F5682CF66E6100CAA4DD /* ExampleApp */,
+				BC51F5682CF66E6100CAA4DD /* KitchenSink */,
 			);
-			name = ExampleApp;
+			name = KitchenSink;
 			packageProductDependencies = (
 				BC9B806E2D8B885D00AFB75D /* FreeToken */,
 				A46519462DA0589E001157AD /* FreeToken */,
@@ -124,7 +124,7 @@
 				A4FC6EE82DFA351600925D82 /* MarkdownUI */,
 			);
 			productName = ExampleApp;
-			productReference = BC51F5662CF66E6100CAA4DD /* ExampleApp.app */;
+			productReference = BC51F5662CF66E6100CAA4DD /* KitchenSink.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -146,7 +146,7 @@
 					};
 				};
 			};
-			buildConfigurationList = BC51F5612CF66E6100CAA4DD /* Build configuration list for PBXProject "ExampleApp" */;
+			buildConfigurationList = BC51F5612CF66E6100CAA4DD /* Build configuration list for PBXProject "KitchenSink" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -164,8 +164,8 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				BC51F5652CF66E6100CAA4DD /* ExampleApp */,
-				A4149DA82E296D15005D9F6A /* ExampleAppTests */,
+				BC51F5652CF66E6100CAA4DD /* KitchenSink */,
+				A4149DA82E296D15005D9F6A /* KitchenSinkTests */,
 			);
 		};
 /* End PBXProject section */
@@ -207,7 +207,7 @@
 /* Begin PBXTargetDependency section */
 		A4149DAE2E296D15005D9F6A /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = BC51F5652CF66E6100CAA4DD /* ExampleApp */;
+			target = BC51F5652CF66E6100CAA4DD /* KitchenSink */;
 			targetProxy = A4149DAD2E296D15005D9F6A /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -228,7 +228,7 @@
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ExampleApp.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ExampleApp";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/KitchenSink.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/KitchenSink";
 			};
 			name = Debug;
 		};
@@ -247,7 +247,7 @@
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ExampleApp.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ExampleApp";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/KitchenSink.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/KitchenSink";
 			};
 			name = Release;
 		};
@@ -445,7 +445,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		A4149DAF2E296D15005D9F6A /* Build configuration list for PBXNativeTarget "ExampleAppTests" */ = {
+		A4149DAF2E296D15005D9F6A /* Build configuration list for PBXNativeTarget "KitchenSinkTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				A4149DB02E296D15005D9F6A /* Debug */,
@@ -454,7 +454,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		BC51F5612CF66E6100CAA4DD /* Build configuration list for PBXProject "ExampleApp" */ = {
+		BC51F5612CF66E6100CAA4DD /* Build configuration list for PBXProject "KitchenSink" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				BC51F5722CF66E6200CAA4DD /* Debug */,
@@ -463,7 +463,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		BC51F5742CF66E6200CAA4DD /* Build configuration list for PBXNativeTarget "ExampleApp" */ = {
+		BC51F5742CF66E6200CAA4DD /* Build configuration list for PBXNativeTarget "KitchenSink" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				BC51F5752CF66E6200CAA4DD /* Debug */,
