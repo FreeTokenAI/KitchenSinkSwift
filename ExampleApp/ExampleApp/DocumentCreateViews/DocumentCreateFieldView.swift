@@ -16,31 +16,46 @@ struct DocumentCreateFieldView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(title)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+            Text(title.uppercased())
+                .font(.system(size: 12, weight: .semibold))
+                .textCase(.uppercase)
+                .kerning(0.8)
+                .foregroundColor(CyberpunkTheme.Colors.cyberGold)
+
             if isMultiline {
                 ZStack(alignment: .topLeading) {
-                    Text(placeholder)
-                        .foregroundStyle(Color.gray.opacity(0.5))
+                    Text(placeholder.uppercased())
+                        .font(.system(size: 12, weight: .medium))
+                        .textCase(.uppercase)
+                        .kerning(0.6)
+                        .foregroundStyle(CyberpunkTheme.Colors.cyberBlueLight.opacity(0.4))
                         .padding(.top, 8)
                         .padding(.horizontal, 5)
                         .opacity(text.isEmpty ? 1 : 0)
+
                     TextEditor(text: $text)
+                        .font(.system(size: 13, weight: .regular, design: .monospaced))
+                        .foregroundColor(CyberpunkTheme.Colors.cyberCyan)
                         .frame(height: height)
                         .padding(4)
                         .scrollContentBackground(.hidden)
+                        .background(CyberpunkTheme.Colors.cyberPanel)
                         .overlay(
                             RoundedRectangle(cornerRadius: 8)
-                                .stroke(Color.accentColor.opacity(0.3), lineWidth: 1.5)
+                                .stroke(CyberpunkTheme.Colors.cyberCyan.opacity(0.3), lineWidth: 1)
                         )
                 }
             } else {
-                TextField(placeholder, text: $text)
+                TextField(placeholder.uppercased(), text: $text)
+                    .font(.system(size: 13, weight: .regular, design: .monospaced))
+                    .foregroundColor(CyberpunkTheme.Colors.cyberCyan)
+                    .textCase(.none)
                     .padding(10)
-                    .background(RoundedRectangle(cornerRadius: 8).fill(Color(.systemGray6)))
-                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.accentColor.opacity(0.3), lineWidth: 1.5))
-                    .font(.body)
+                    .background(CyberpunkTheme.Colors.cyberPanel)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(CyberpunkTheme.Colors.cyberCyan.opacity(0.3), lineWidth: 1)
+                    )
             }
         }
     }

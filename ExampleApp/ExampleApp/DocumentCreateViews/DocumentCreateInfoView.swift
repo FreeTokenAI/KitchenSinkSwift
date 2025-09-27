@@ -11,41 +11,50 @@ struct DocumentCreateInfoView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Label {
-                Text("Any document stored in your app’s vector store should be public data. It is not secure or protected from other users’ access.")
+                Text("ANY DOCUMENT STORED IN YOUR APP'S VECTOR STORE SHOULD BE PUBLIC DATA. IT IS NOT SECURE OR PROTECTED FROM OTHER USERS' ACCESS.")
+                    .font(.system(size: 11, weight: .medium))
+                    .textCase(.uppercase)
+                    .kerning(0.6)
             } icon: {
                 Image(systemName: "exclamationmark.triangle.fill")
                     .foregroundColor(.red)
+                    .neonGlow(color: .red, radius: 2)
             }
-            .font(.callout)
             .foregroundColor(.red)
 
             Label {
-                Text("It is not recommended that you use the document store as a persistence store in your app. Only use it for context to be provided to an AI.")
+                Text("IT IS NOT RECOMMENDED THAT YOU USE THE DOCUMENT STORE AS A PERSISTENCE STORE IN YOUR APP. ONLY USE IT FOR CONTEXT TO BE PROVIDED TO AN AI.")
+                    .font(.system(size: 11, weight: .medium))
+                    .textCase(.uppercase)
+                    .kerning(0.6)
             } icon: {
                 Image(systemName: "info.circle.fill")
-                    .foregroundColor(.orange)
+                    .foregroundColor(CyberpunkTheme.Colors.cyberOrange)
+                    .neonGlow(color: CyberpunkTheme.Colors.cyberOrange, radius: 2)
             }
-            .font(.callout)
-            .foregroundColor(.orange)
+            .foregroundColor(CyberpunkTheme.Colors.cyberOrange)
 
             Label {
-                Text("For large documents, break them into chunks. Large documents may hit an upload error.")
+                Text("FOR LARGE DOCUMENTS, BREAK THEM INTO CHUNKS. LARGE DOCUMENTS MAY HIT AN UPLOAD ERROR.")
+                    .font(.system(size: 11, weight: .medium))
+                    .textCase(.uppercase)
+                    .kerning(0.6)
             } icon: {
                 Image(systemName: "lightbulb.fill")
-                    .foregroundColor(.blue)
+                    .foregroundColor(CyberpunkTheme.Colors.cyberCyan)
+                    .neonGlow(color: CyberpunkTheme.Colors.cyberCyan, radius: 2)
             }
-            .font(.callout)
-            .foregroundColor(.blue)
+            .foregroundColor(CyberpunkTheme.Colors.cyberCyan)
         }
         .padding()
         .background(
-            LinearGradient(
-                gradient: Gradient(colors: [Color(.systemGray6), Color(.systemGray5)]),
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
+            RoundedRectangle(cornerRadius: 14)
+                .fill(CyberpunkTheme.Colors.cyberPanel)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14)
+                        .stroke(CyberpunkTheme.Colors.cyberMagenta.opacity(0.3), lineWidth: 1)
+                )
         )
-        .cornerRadius(14)
-        .shadow(color: Color.black.opacity(0.07), radius: 6, x: 0, y: 2)
+        .shadow(color: CyberpunkTheme.Colors.cyberMagenta.opacity(0.2), radius: 8)
     }
 }

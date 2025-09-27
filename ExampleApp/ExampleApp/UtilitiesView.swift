@@ -20,14 +20,22 @@ struct UtilitiesView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 28) {
-                    headerView
-                    utilityButtonsGrid
+            ZStack {
+                // Cyberpunk background
+                CyberpunkTheme.Gradients.backgroundGradient
+                    .ignoresSafeArea()
+
+                ScrollView {
+                    VStack(spacing: 28) {
+                        headerView
+                        utilityButtonsGrid
+                    }
+                    .padding()
                 }
-                .padding()
             }
-            .navigationTitle("Utilities")
+            .navigationTitle("UTILITIES")
+            .toolbarBackground(CyberpunkTheme.Colors.cyberPanel, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
             .alert(alertTitle, isPresented: $showingAlert) {
                 Button("OK", role: .cancel) { }
             } message: {
@@ -70,25 +78,30 @@ struct UtilitiesView: View {
             .overlay {
                 if isResetting {
                     ZStack {
-                        Color.black.opacity(0.5)
+                        Color.black.opacity(0.7)
                             .ignoresSafeArea()
 
                         VStack(spacing: 20) {
                             ProgressView()
                                 .scaleEffect(1.5)
-                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                .progressViewStyle(CircularProgressViewStyle(tint: CyberpunkTheme.Colors.cyberCyan))
 
-                            Text("Resetting Device...")
-                                .font(.headline)
-                                .foregroundColor(.white)
+                            Text("RESETTING DEVICE...")
+                                .font(.system(size: 16, weight: .bold))
+                                .textCase(.uppercase)
+                                .kerning(2)
+                                .foregroundColor(CyberpunkTheme.Colors.cyberCyan)
+                                .neonGlow(color: CyberpunkTheme.Colors.cyberCyan, radius: 3)
 
-                            Text("Please wait while we reset the client")
-                                .font(.subheadline)
-                                .foregroundColor(.white.opacity(0.8))
+                            Text("PLEASE WAIT WHILE WE RESET THE CLIENT")
+                                .font(.system(size: 12, weight: .medium))
+                                .textCase(.uppercase)
+                                .kerning(1)
+                                .foregroundColor(CyberpunkTheme.Colors.cyberBlueLight)
                         }
                         .padding(30)
-                        .background(Color.black.opacity(0.8))
-                        .cornerRadius(20)
+                        .cyberPanel()
+                        .shadow(color: CyberpunkTheme.Colors.cyberMagenta.opacity(0.5), radius: 20)
                     }
                 }
             }
@@ -98,24 +111,20 @@ struct UtilitiesView: View {
     private var headerView: some View {
         VStack(alignment: .leading, spacing: 14) {
             Label {
-                Text("Manage your device settings, reset caches, and perform other utility functions.")
+                Text("MANAGE YOUR DEVICE SETTINGS, RESET CACHES, AND PERFORM OTHER UTILITY FUNCTIONS.")
+                    .textCase(.uppercase)
+                    .font(.system(size: 12, weight: .medium))
+                    .kerning(0.8)
             } icon: {
                 Image(systemName: "wrench.and.screwdriver")
-                    .foregroundColor(.accentColor)
+                    .foregroundColor(CyberpunkTheme.Colors.cyberCyan)
+                    .neonGlow(color: CyberpunkTheme.Colors.cyberCyan, radius: 2)
             }
-            .font(.body)
-            .foregroundColor(.primary)
+            .foregroundColor(CyberpunkTheme.Colors.cyberBlueLight)
         }
         .padding()
-        .background(
-            LinearGradient(
-                gradient: Gradient(colors: [Color(.systemGray6), Color(.systemGray5)]),
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-        )
-        .cornerRadius(14)
-        .shadow(color: Color.black.opacity(0.07), radius: 6, x: 0, y: 2)
+        .cyberPanel()
+        .shadow(color: CyberpunkTheme.Colors.cyberMagenta.opacity(0.3), radius: 10)
     }
 
     private var utilityButtonsGrid: some View {
@@ -125,7 +134,7 @@ struct UtilitiesView: View {
         ], spacing: 16) {
             UtilityButtonView(
                 icon: "lock.fill",
-                iconColor: .green,
+                iconColor: CyberpunkTheme.Colors.cyberGreen,
                 title: "Enable Encryption",
                 description: "Generate an Encryption Key and Enable Encryption"
             ) {
@@ -145,7 +154,7 @@ struct UtilitiesView: View {
 
             UtilityButtonView(
                 icon: "trash",
-                iconColor: .orange,
+                iconColor: CyberpunkTheme.Colors.cyberOrange,
                 title: "Reset Model Caches",
                 description: "Clear all downloaded AI models"
             ) {
@@ -156,7 +165,7 @@ struct UtilitiesView: View {
 
             UtilityButtonView(
                 icon: "bubble.left.and.bubble.right.fill",
-                iconColor: .blue,
+                iconColor: CyberpunkTheme.Colors.cyberCyan,
                 title: "Reset Chat Caches",
                 description: "Clear model context chat caches"
             ) {
@@ -167,7 +176,7 @@ struct UtilitiesView: View {
 
             UtilityButtonView(
                 icon: "square.stack.3d.down.right.fill",
-                iconColor: .purple,
+                iconColor: CyberpunkTheme.Colors.cyberMagenta,
                 title: "Reset Embedding Model Cache",
                 description: "Clear cached embedding model"
             ) {
@@ -178,7 +187,7 @@ struct UtilitiesView: View {
 
             UtilityButtonView(
                 icon: "number",
-                iconColor: .teal,
+                iconColor: CyberpunkTheme.Colors.cyberCyan,
                 title: "Count Tokens",
                 description: "Calculate token usage for text"
             ) {

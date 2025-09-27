@@ -24,7 +24,7 @@ struct DocumentSearchByQueryView: View {
     private var isInputValid: Bool {
         !trimmedQuery.isEmpty
     }
-    
+
     private var canClear: Bool {
         !documentQuery.isEmpty ||
         !documentSearchScope.isEmpty ||
@@ -33,7 +33,7 @@ struct DocumentSearchByQueryView: View {
         !searchResults.isEmpty ||
         !statusMessage.isEmpty
     }
-    
+
     // Logic for  loading and search results
     private var searchResultsDisplayView: some View {
         Group {
@@ -42,8 +42,6 @@ struct DocumentSearchByQueryView: View {
                     ForEach(searchResults, id: \.documentID) { chunk in
                         DocumentSearchByQueryResultView(chunk: chunk)
                     }
-                    .background(Color(.systemGray6))
-                    .cornerRadius(12)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             } else if !statusMessage.isEmpty {
@@ -54,116 +52,149 @@ struct DocumentSearchByQueryView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 28) {
-                    VStack(alignment: .leading, spacing: 14) {
-                        Text("Enter a query to search for document chunks in your app's vector store. Optionally, specify a search scope, private store IDs, and max results.")
-                            .font(.callout)
-                            .foregroundColor(.secondary)
+            ZStack {
+                // Cyberpunk background
+                CyberpunkTheme.Gradients.backgroundGradient
+                    .ignoresSafeArea()
 
-                        Text("Note: Leave Private Store IDs empty to search only public documents.")
-                            .font(.caption)
-                            .foregroundColor(.orange)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 6)
-                            .background(Color.orange.opacity(0.1))
-                            .cornerRadius(8)
-                    }
-                    .padding()
-                    .background(
-                        LinearGradient(
-                            gradient: Gradient(colors: [Color(.systemGray6), Color(.systemGray5)]),
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .cornerRadius(14)
-                    .shadow(color: Color.black.opacity(0.07), radius: 6, x: 0, y: 2)
+                ScrollView {
+                    VStack(spacing: 28) {
+                        VStack(alignment: .leading, spacing: 14) {
+                            Text("ENTER A QUERY TO SEARCH FOR DOCUMENT CHUNKS IN YOUR APP'S VECTOR STORE. OPTIONALLY, SPECIFY A SEARCH SCOPE, PRIVATE STORE IDS, AND MAX RESULTS.")
+                                .font(.system(size: 12, weight: .medium))
+                                .textCase(.uppercase)
+                                .kerning(0.8)
+                                .foregroundColor(CyberpunkTheme.Colors.cyberBlueLight)
 
-                    VStack(spacing: 18) {
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text("Document Query")
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                            TextField("Enter Document Query", text: $documentQuery)
-                                .padding(8)
-                                .background(Color.clear)
-                                .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.accentColor.opacity(0.3), lineWidth: 1.5))
-                                .autocapitalization(.none)
-                                .disableAutocorrection(true)
+                            Text("NOTE: LEAVE PRIVATE STORE IDS EMPTY TO SEARCH ONLY PUBLIC DOCUMENTS.")
+                                .font(.system(size: 10, weight: .medium))
+                                .textCase(.uppercase)
+                                .kerning(0.6)
+                                .foregroundColor(CyberpunkTheme.Colors.cyberOrange)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 6)
+                                .background(CyberpunkTheme.Colors.cyberOrange.opacity(0.1))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .stroke(CyberpunkTheme.Colors.cyberOrange.opacity(0.3), lineWidth: 1)
+                                )
                         }
-                        if !isInputValid && !documentQuery.isEmpty {
-                            Text("Query cannot be empty or whitespace.")
-                                .font(.footnote)
-                                .foregroundColor(.red)
-                        }
+                        .padding()
+                        .cyberPanel()
+                        .shadow(color: CyberpunkTheme.Colors.cyberMagenta.opacity(0.2), radius: 8)
 
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text("Search Scope (optional)")
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                            TextField("blog-posts", text: $documentSearchScope)
-                                .padding(8)
-                                .background(Color.clear)
-                                .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.accentColor.opacity(0.3), lineWidth: 1.5))
-                                .autocapitalization(.none)
-                                .disableAutocorrection(true)
-                        }
-
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text("Private Document Store IDs (optional, comma-separated)")
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                            TextField("store-id-1, store-id-2", text: $privateDocumentStoreIds)
-                                .padding(8)
-                                .background(Color.clear)
-                                .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.green.opacity(0.3), lineWidth: 1.5))
-                                .autocapitalization(.none)
-                                .disableAutocorrection(true)
-                        }
-
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text("Number of Max Results (optional)")
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                            TextField("10", text: $documentMaxResultsString)
-                                .padding(8)
-                                .background(Color.clear)
-                                .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.accentColor.opacity(0.3), lineWidth: 1.5))
-                                .keyboardType(.numberPad)
-                        }
-                        
-                        FormActionsView(
-                            primaryLabel: "Search",
-                            canPrimary: isInputValid,
-                            showValidationError: !isInputValid && !documentQuery.isEmpty,
-                            validationErrorMessage: "Query cannot be empty or whitespace.",
-                            showClear: canClear,
-                            clearLabel: "Clear",
-                            onPrimary: {
-                                Task { await searchDocument() }
-                            },
-                            onClear: {
-                                clearFields()
+                        VStack(spacing: 18) {
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("DOCUMENT QUERY")
+                                    .font(.system(size: 12, weight: .semibold))
+                                    .textCase(.uppercase)
+                                    .kerning(0.8)
+                                    .foregroundColor(CyberpunkTheme.Colors.cyberGold)
+                                TextField("ENTER DOCUMENT QUERY", text: $documentQuery)
+                                    .font(.system(size: 13, weight: .regular, design: .monospaced))
+                                    .foregroundColor(CyberpunkTheme.Colors.cyberCyan)
+                                    .padding(8)
+                                    .background(Color.clear)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .stroke(CyberpunkTheme.Colors.cyberCyan.opacity(0.3), lineWidth: 1)
+                                    )
+                                    .autocapitalization(.none)
+                                    .disableAutocorrection(true)
                             }
-                        )
+                            if !isInputValid && !documentQuery.isEmpty {
+                                Text("QUERY CANNOT BE EMPTY OR WHITESPACE.")
+                                    .font(.system(size: 10, weight: .medium))
+                                    .textCase(.uppercase)
+                                    .kerning(0.6)
+                                    .foregroundColor(.red)
+                                    .neonGlow(color: .red, radius: 2)
+                            }
 
-                        searchResultsDisplayView
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("SEARCH SCOPE (OPTIONAL)")
+                                    .font(.system(size: 12, weight: .semibold))
+                                    .textCase(.uppercase)
+                                    .kerning(0.8)
+                                    .foregroundColor(CyberpunkTheme.Colors.cyberGold)
+                                TextField("BLOG-POSTS", text: $documentSearchScope)
+                                    .font(.system(size: 13, weight: .regular, design: .monospaced))
+                                    .foregroundColor(CyberpunkTheme.Colors.cyberCyan)
+                                    .padding(8)
+                                    .background(Color.clear)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .stroke(CyberpunkTheme.Colors.cyberCyan.opacity(0.3), lineWidth: 1)
+                                    )
+                                    .autocapitalization(.none)
+                                    .disableAutocorrection(true)
+                            }
+
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("PRIVATE DOCUMENT STORE IDS (OPTIONAL, COMMA-SEPARATED)")
+                                    .font(.system(size: 12, weight: .semibold))
+                                    .textCase(.uppercase)
+                                    .kerning(0.8)
+                                    .foregroundColor(CyberpunkTheme.Colors.cyberGold)
+                                TextField("STORE-ID-1, STORE-ID-2", text: $privateDocumentStoreIds)
+                                    .font(.system(size: 13, weight: .regular, design: .monospaced))
+                                    .foregroundColor(CyberpunkTheme.Colors.cyberCyan)
+                                    .padding(8)
+                                    .background(Color.clear)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .stroke(CyberpunkTheme.Colors.cyberGreen.opacity(0.3), lineWidth: 1)
+                                    )
+                                    .autocapitalization(.none)
+                                    .disableAutocorrection(true)
+                            }
+
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("NUMBER OF MAX RESULTS (OPTIONAL)")
+                                    .font(.system(size: 12, weight: .semibold))
+                                    .textCase(.uppercase)
+                                    .kerning(0.8)
+                                    .foregroundColor(CyberpunkTheme.Colors.cyberGold)
+                                TextField("10", text: $documentMaxResultsString)
+                                    .font(.system(size: 13, weight: .regular, design: .monospaced))
+                                    .foregroundColor(CyberpunkTheme.Colors.cyberCyan)
+                                    .padding(8)
+                                    .background(Color.clear)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .stroke(CyberpunkTheme.Colors.cyberCyan.opacity(0.3), lineWidth: 1)
+                                    )
+                                    .keyboardType(.numberPad)
+                            }
+
+                            FormActionsView(
+                                primaryLabel: "Search",
+                                canPrimary: isInputValid,
+                                showValidationError: !isInputValid && !documentQuery.isEmpty,
+                                validationErrorMessage: "Query cannot be empty or whitespace.",
+                                showClear: canClear,
+                                clearLabel: "Clear",
+                                onPrimary: {
+                                    Task { await searchDocument() }
+                                },
+                                onClear: {
+                                    clearFields()
+                                }
+                            )
+
+                            searchResultsDisplayView
+                        }
+                        .padding()
+                        .cyberPanel()
+                        .shadow(color: CyberpunkTheme.Colors.cyberMagenta.opacity(0.2), radius: 8)
                     }
                     .padding()
-                    .background(
-                        LinearGradient(
-                            gradient: Gradient(colors: [Color(.systemBackground), Color(.systemGray6)]),
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .cornerRadius(14)
-                    .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 1)
                 }
-                .padding()
             }
-            .navigationTitle("Search by Query")
+            .navigationTitle("SEARCH BY QUERY")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(CyberpunkTheme.Colors.cyberPanel, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
         }
     }
 
@@ -205,7 +236,7 @@ struct DocumentSearchByQueryView: View {
             }
         }
     }
-    
+
     private func clearFields() {
         documentQuery = ""
         documentSearchScope = ""

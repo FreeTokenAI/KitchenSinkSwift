@@ -13,27 +13,38 @@ struct UtilityButtonView: View {
                 Image(systemName: icon)
                     .font(.system(size: 36))
                     .foregroundColor(iconColor)
+                    .neonGlow(color: iconColor, radius: 3)
 
-                Text(title)
-                    .font(.headline)
-                    .foregroundColor(.primary)
+                Text(title.uppercased())
+                    .font(.system(size: 14, weight: .bold))
+                    .textCase(.uppercase)
+                    .kerning(1.2)
+                    .foregroundColor(iconColor)
 
-                Text(description)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                Text(description.uppercased())
+                    .font(.system(size: 10, weight: .medium))
+                    .textCase(.uppercase)
+                    .kerning(0.6)
+                    .foregroundColor(CyberpunkTheme.Colors.cyberBlueLight)
                     .multilineTextAlignment(.center)
                     .lineLimit(2)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .padding()
             .frame(maxWidth: .infinity, minHeight: 160)
-            .background(Color(.systemBackground))
-            .cornerRadius(16)
-            .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 2)
-            .overlay(
-                RoundedRectangle(cornerRadius: 16)
-                    .stroke(iconColor.opacity(0.2), lineWidth: 1)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(CyberpunkTheme.Colors.cyberPanel)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(.ultraThinMaterial)
+                    )
             )
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(iconColor.opacity(0.5), lineWidth: 1)
+            )
+            .shadow(color: iconColor.opacity(0.3), radius: 10)
         }
         .buttonStyle(PlainButtonStyle())
     }

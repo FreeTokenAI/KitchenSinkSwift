@@ -22,33 +22,45 @@ struct DocumentStatusView: View {
             ZStack {
                 Circle()
                     .fill(
-                        LinearGradient(
-                            gradient: Gradient(colors: [
-                                status == .success ? Color.green.opacity(0.18) :
-                                status == .error ? Color.red.opacity(0.18) :
-                                Color.blue.opacity(0.18),
-                                Color(.systemBackground)
-                            ]),
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
+                        status == .success ? CyberpunkTheme.Colors.cyberGreen.opacity(0.2) :
+                        status == .error ? Color.red.opacity(0.2) :
+                        CyberpunkTheme.Colors.cyberCyan.opacity(0.2)
                     )
                     .frame(width: 40, height: 40)
+                    .overlay(
+                        Circle()
+                            .stroke(
+                                status == .success ? CyberpunkTheme.Colors.cyberGreen.opacity(0.5) :
+                                status == .error ? Color.red.opacity(0.5) :
+                                CyberpunkTheme.Colors.cyberCyan.opacity(0.5),
+                                lineWidth: 1
+                            )
+                    )
                 if status == .loading {
                     ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle(tint: .blue))
+                        .progressViewStyle(CircularProgressViewStyle(tint: CyberpunkTheme.Colors.cyberCyan))
                         .frame(width: 24, height: 24)
                         .accessibilityLabel("Loading")
                 } else {
                     Image(systemName: status == .success ? "checkmark.circle.fill" : "exclamationmark.circle.fill")
-                        .foregroundColor(status == .success ? .green : .red)
+                        .foregroundColor(status == .success ? CyberpunkTheme.Colors.cyberGreen : .red)
                         .font(.title2)
+                        .neonGlow(
+                            color: status == .success ? CyberpunkTheme.Colors.cyberGreen : .red,
+                            radius: 2
+                        )
                         .accessibilityLabel(status == .success ? "Success" : "Error")
                 }
             }
-            Text(message)
-                .foregroundColor(.primary)
-                .font(.body)
+            Text(message.uppercased())
+                .font(.system(size: 12, weight: .medium))
+                .textCase(.uppercase)
+                .kerning(0.8)
+                .foregroundColor(
+                    status == .success ? CyberpunkTheme.Colors.cyberGreen :
+                    status == .error ? .red :
+                    CyberpunkTheme.Colors.cyberCyan
+                )
                 .lineLimit(3)
                 .minimumScaleFactor(0.9)
             Spacer()
@@ -56,19 +68,24 @@ struct DocumentStatusView: View {
         .padding(.vertical, 18)
         .padding(.horizontal, 20)
         .background(
-            LinearGradient(
-                gradient: Gradient(colors: [
-                    status == .success ? Color.green.opacity(0.12) :
-                    status == .error ? Color.red.opacity(0.12) :
-                    Color.blue.opacity(0.12),
-                    Color(.systemGray6)
-                ]),
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
+            RoundedRectangle(cornerRadius: 16)
+                .fill(CyberpunkTheme.Colors.cyberPanel)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(
+                            status == .success ? CyberpunkTheme.Colors.cyberGreen.opacity(0.3) :
+                            status == .error ? Color.red.opacity(0.3) :
+                            CyberpunkTheme.Colors.cyberCyan.opacity(0.3),
+                            lineWidth: 1
+                        )
+                )
         )
-        .cornerRadius(16)
-        .shadow(color: Color.black.opacity(0.09), radius: 8, x: 0, y: 2)
+        .shadow(
+            color: status == .success ? CyberpunkTheme.Colors.cyberGreen.opacity(0.2) :
+                   status == .error ? Color.red.opacity(0.2) :
+                   CyberpunkTheme.Colors.cyberCyan.opacity(0.2),
+            radius: 8
+        )
         .transition(.move(edge: .top).combined(with: .opacity))
         .animation(.spring(), value: message)
         .accessibilityElement(children: .combine)

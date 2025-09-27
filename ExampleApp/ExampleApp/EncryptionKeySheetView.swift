@@ -7,24 +7,36 @@ struct EncryptionKeySheetView: View {
 
     var body: some View {
         NavigationView {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    encryptionEnabledSection
-                    userPrivateKeySection
-                    sharedPublicKeySection
-                    copyBothKeysButton
-                    importantNotesSection
-                    Spacer(minLength: 20)
+            ZStack {
+                // Cyberpunk background
+                CyberpunkTheme.Gradients.backgroundGradient
+                    .ignoresSafeArea()
+
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 20) {
+                        encryptionEnabledSection
+                        userPrivateKeySection
+                        sharedPublicKeySection
+                        copyBothKeysButton
+                        importantNotesSection
+                        Spacer(minLength: 20)
+                    }
+                    .padding()
                 }
-                .padding()
             }
-            .navigationTitle("Encryption Keys Generated")
+            .navigationTitle("ENCRYPTION KEYS")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(CyberpunkTheme.Colors.cyberPanel, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") {
+                    Button("DONE") {
                         isPresented = false
                     }
+                    .font(.system(size: 14, weight: .bold))
+                    .textCase(.uppercase)
+                    .kerning(1.2)
+                    .foregroundColor(CyberpunkTheme.Colors.cyberGreen)
                 }
             }
         }
@@ -37,45 +49,69 @@ struct EncryptionKeySheetView: View {
 
     private var encryptionEnabledSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label("Encryption Enabled", systemImage: "lock.shield.fill")
-                .font(.title2)
-                .fontWeight(.semibold)
-                .foregroundColor(.green)
+            Label {
+                Text("ENCRYPTION ENABLED")
+                    .font(.system(size: 16, weight: .bold))
+                    .textCase(.uppercase)
+                    .kerning(1.5)
+                    .foregroundColor(CyberpunkTheme.Colors.cyberGreen)
+                    .neonGlow(color: CyberpunkTheme.Colors.cyberGreen, radius: 2)
+            } icon: {
+                Image(systemName: "lock.shield.fill")
+                    .foregroundColor(CyberpunkTheme.Colors.cyberGreen)
+                    .neonGlow(color: CyberpunkTheme.Colors.cyberGreen, radius: 2)
+            }
 
-            Text("All documents and messages will be encrypted for the remainder of this session.")
-                .font(.body)
-                .foregroundColor(.secondary)
+            Text("ALL DOCUMENTS AND MESSAGES WILL BE ENCRYPTED FOR THE REMAINDER OF THIS SESSION.")
+                .font(.system(size: 12, weight: .medium))
+                .textCase(.uppercase)
+                .kerning(0.8)
+                .foregroundColor(CyberpunkTheme.Colors.cyberBlueLight)
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.green.opacity(0.1))
-        .cornerRadius(12)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(CyberpunkTheme.Colors.cyberPanel)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(CyberpunkTheme.Colors.cyberGreen.opacity(0.5), lineWidth: 1)
+                )
+        )
+        .shadow(color: CyberpunkTheme.Colors.cyberGreen.opacity(0.3), radius: 10)
     }
 
     private var userPrivateKeySection: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Image(systemName: "person.lock.fill")
-                    .foregroundColor(.blue)
-                Text("User Private Key")
-                    .font(.headline)
-                    .foregroundColor(.primary)
+                    .foregroundColor(CyberpunkTheme.Colors.cyberCyan)
+                    .neonGlow(color: CyberpunkTheme.Colors.cyberCyan, radius: 2)
+                Text("USER PRIVATE KEY")
+                    .font(.system(size: 14, weight: .bold))
+                    .textCase(.uppercase)
+                    .kerning(1.2)
+                    .foregroundColor(CyberpunkTheme.Colors.cyberCyan)
             }
 
-            Text("For encrypting your private documents and messages")
-                .font(.caption)
-                .foregroundColor(.secondary)
+            Text("FOR ENCRYPTING YOUR PRIVATE DOCUMENTS AND MESSAGES")
+                .font(.system(size: 10, weight: .medium))
+                .textCase(.uppercase)
+                .kerning(0.6)
+                .foregroundColor(CyberpunkTheme.Colors.cyberBlueLight)
 
             keyDisplayView(key: userPrivateKey, keyType: "User Private")
 
             Button(action: {
                 UIPasteboard.general.string = userPrivateKey
             }) {
-                Label("Copy User Private Key", systemImage: "doc.on.doc")
+                Label("COPY USER PRIVATE KEY", systemImage: "doc.on.doc")
+                    .font(.system(size: 14, weight: .bold))
+                    .textCase(.uppercase)
+                    .kerning(1.2)
                     .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.borderedProminent)
-            .tint(.blue)
+            .cyberButton()
         }
     }
 
@@ -90,45 +126,57 @@ struct EncryptionKeySheetView: View {
             """
             UIPasteboard.general.string = combinedKeys
         }) {
-            Label("Copy Both Keys", systemImage: "doc.on.doc.fill")
+            Label("COPY BOTH KEYS", systemImage: "doc.on.doc.fill")
+                .font(.system(size: 14, weight: .bold))
+                .textCase(.uppercase)
+                .kerning(1.2)
                 .frame(maxWidth: .infinity)
         }
-        .buttonStyle(.borderedProminent)
-        .tint(.green)
+        .cyberButton()
     }
 
     private var sharedPublicKeySection: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Image(systemName: "person.2.fill")
-                    .foregroundColor(.purple)
-                Text("Shared Public Key")
-                    .font(.headline)
-                    .foregroundColor(.primary)
+                    .foregroundColor(CyberpunkTheme.Colors.cyberMagenta)
+                    .neonGlow(color: CyberpunkTheme.Colors.cyberMagenta, radius: 2)
+                Text("SHARED PUBLIC KEY")
+                    .font(.system(size: 14, weight: .bold))
+                    .textCase(.uppercase)
+                    .kerning(1.2)
+                    .foregroundColor(CyberpunkTheme.Colors.cyberMagenta)
             }
 
-            Text("For encrypting public documents accessible by all users")
-                .font(.caption)
-                .foregroundColor(.secondary)
+            Text("FOR ENCRYPTING PUBLIC DOCUMENTS ACCESSIBLE BY ALL USERS")
+                .font(.system(size: 10, weight: .medium))
+                .textCase(.uppercase)
+                .kerning(0.6)
+                .foregroundColor(CyberpunkTheme.Colors.cyberBlueLight)
 
             keyDisplayView(key: sharedPublicKey, keyType: "Shared Public")
 
             Button(action: {
                 UIPasteboard.general.string = sharedPublicKey
             }) {
-                Label("Copy Shared Public Key", systemImage: "doc.on.doc")
+                Label("COPY SHARED PUBLIC KEY", systemImage: "doc.on.doc")
+                    .font(.system(size: 14, weight: .bold))
+                    .textCase(.uppercase)
+                    .kerning(1.2)
                     .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.borderedProminent)
-            .tint(.purple)
+            .cyberButton()
         }
     }
 
     private func keyDisplayView(key: String, keyType: String) -> some View {
         Group {
             if key.isEmpty {
-                Text("No key generated")
-                    .foregroundColor(.secondary)
+                Text("NO KEY GENERATED")
+                    .font(.system(size: 12, weight: .medium))
+                    .textCase(.uppercase)
+                    .kerning(0.8)
+                    .foregroundColor(CyberpunkTheme.Colors.cyberMagenta)
                     .italic()
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding()
@@ -136,7 +184,7 @@ struct EncryptionKeySheetView: View {
                 ScrollView {
                     Text(key)
                         .font(.system(size: 13, weight: .regular, design: .monospaced))
-                        .foregroundColor(.primary)
+                        .foregroundColor(CyberpunkTheme.Colors.cyberGold)
                         .textSelection(.enabled)
                         .padding()
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -145,11 +193,11 @@ struct EncryptionKeySheetView: View {
         }
         .id(key)  // Force view refresh when key changes
         .frame(maxWidth: .infinity, minHeight: 80, maxHeight: 120)
-        .background(Color(.secondarySystemBackground))
+        .background(CyberpunkTheme.Colors.cyberPanel)
         .cornerRadius(8)
         .overlay(
             RoundedRectangle(cornerRadius: 8)
-                .stroke(Color(.separator), lineWidth: 1)
+                .stroke(CyberpunkTheme.Colors.cyberGold.opacity(0.3), lineWidth: 1)
         )
         .onAppear {
             print("\(keyType) KeyDisplayView appeared - key value: '\(key)' isEmpty: \(key.isEmpty)")
@@ -158,23 +206,40 @@ struct EncryptionKeySheetView: View {
 
     private var importantNotesSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Label("Important", systemImage: "exclamationmark.triangle.fill")
-                .font(.headline)
-                .foregroundColor(.orange)
+            Label {
+                Text("IMPORTANT")
+                    .font(.system(size: 14, weight: .bold))
+                    .textCase(.uppercase)
+                    .kerning(1.2)
+                    .foregroundColor(CyberpunkTheme.Colors.cyberOrange)
+            } icon: {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .foregroundColor(CyberpunkTheme.Colors.cyberOrange)
+                    .neonGlow(color: CyberpunkTheme.Colors.cyberOrange, radius: 2)
+            }
 
             Text("""
-                • These keys are only shown once
-                • Store them in a secure password manager
-                • Without these keys, encrypted data cannot be recovered
-                • User Private Key: For your private documents and messages
-                • Shared Public Key: For public documents accessible by all users
-                • Both keys are required for full functionality
+                • THESE KEYS ARE ONLY SHOWN ONCE
+                • STORE THEM IN A SECURE PASSWORD MANAGER
+                • WITHOUT THESE KEYS, ENCRYPTED DATA CANNOT BE RECOVERED
+                • USER PRIVATE KEY: FOR YOUR PRIVATE DOCUMENTS AND MESSAGES
+                • SHARED PUBLIC KEY: FOR PUBLIC DOCUMENTS ACCESSIBLE BY ALL USERS
+                • BOTH KEYS ARE REQUIRED FOR FULL FUNCTIONALITY
                 """)
-                .font(.footnote)
-                .foregroundColor(.secondary)
+                .font(.system(size: 10, weight: .medium))
+                .textCase(.uppercase)
+                .kerning(0.6)
+                .foregroundColor(CyberpunkTheme.Colors.cyberBlueLight)
         }
         .padding()
-        .background(Color.orange.opacity(0.1))
-        .cornerRadius(12)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(CyberpunkTheme.Colors.cyberPanel)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(CyberpunkTheme.Colors.cyberOrange.opacity(0.5), lineWidth: 1)
+                )
+        )
+        .shadow(color: CyberpunkTheme.Colors.cyberOrange.opacity(0.3), radius: 10)
     }
 }

@@ -144,7 +144,17 @@ struct InputMessageView: View {
 
             HStack {
                 TextField("Type a message...", text: $inputMessage, axis: .vertical)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .font(.system(.body, design: .monospaced))
+                    .foregroundColor(.white)
+                    .padding(8)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(CyberpunkTheme.Colors.cyberPanel)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(CyberpunkTheme.Colors.cyberCyan.opacity(0.3), lineWidth: 1)
+                            )
+                    )
                     .disabled(isLoading)
 
                 Button(action: {
