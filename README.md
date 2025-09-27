@@ -71,7 +71,7 @@ Model management interface showcasing:
 
 **Key Capabilities Demonstrated**:
 - Listing available AI models
-- Model download for offline/faster inference
+- Model download for local inference
 - Automatic cloud fallback when local fails
 - Memory management and model deletion
 - Cloud-only model identification
@@ -197,16 +197,6 @@ KitchenSink/
 4. **Build and run**
    - Select your target device/simulator
    - Press ⌘R to build and run
-
-## 🎯 Use Cases Demonstrated
-
-- **Customer Support Bot**: Use chat with RAG for context-aware support
-- **Content Generation**: Use completions for creative writing
-- **Document Q&A**: Upload documents and query them with AI
-- **Offline AI**: Download models for airplane mode usage
-- **Secure AI**: Enable encryption for sensitive data
-- **A/B Testing**: Switch between models to compare performance
-- **Tool Integration**: Extend AI with custom functions
 
 ## 🔗 Resources
 
