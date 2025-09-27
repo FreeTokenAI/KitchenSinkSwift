@@ -161,7 +161,7 @@ The app follows MVVM (Model-View-ViewModel) architecture:
 ## 🏗️ Project Structure
 
 ```
-ExampleApp/
+KitchenSink/
 ├── FreeTokenClient.swift       # SDK wrapper and initialization
 ├── ChatView.swift              # Chat interface and message threading
 ├── ChatViewModel.swift         # Chat logic and streaming
@@ -180,12 +180,12 @@ ExampleApp/
 1. **Clone the repository**
    ```bash
    git clone [repository-url]
-   cd ExampleApp
+   cd KitchenSink
    ```
 
 2. **Open in Xcode**
    ```bash
-   open ExampleApp.xcodeproj
+   open KitchenSink.xcodeproj
    ```
 
 3. **Configure your app token**
