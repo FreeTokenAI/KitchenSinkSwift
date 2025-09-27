@@ -2,10 +2,21 @@ import Foundation
 import FreeToken
 import CryptoKit
 
+// MARK: - FreeToken SDK Client Wrapper
+// This class manages the FreeToken SDK lifecycle and state for the application
+// For complete setup guide, see: https://docs.freetoken.ai/docs/getting-started
 class FreeTokenClient: ObservableObject {
     // Default app token - developers can modify this directly in code
+    // To get your own app token:
+    // 1. Visit https://console.freetoken.ai
+    // 2. Create a new app in the Apps section
+    // 3. Generate an App Token in the Manage App Tokens section
+    // See: https://docs.freetoken.ai/docs/getting-started
     static let DEFAULT_APP_TOKEN = "app_tkn_951a73e1-3631-42ea-9a78-e1ae812e75e9"
 
+    // Encryption key for secure data storage
+    // Used with FreeToken's encryption features for protecting sensitive data
+    // See: https://docs.freetoken.ai/docs/guides/encryption
     let encryptionKey = SymmetricKey(size: .bits256)
 
     // Registration state
@@ -30,7 +41,10 @@ class FreeTokenClient: ObservableObject {
         }
     }
 
-    // Main registration method that uses the provided token
+    // MARK: - Device Registration
+    // Main registration method that configures the SDK and establishes a device session
+    // This is the first step after app installation to enable AI features
+    // For detailed registration guide, see: https://docs.freetoken.ai/docs/getting-started
     func registerDevice(with token: String) async {
         await MainActor.run {
             isRegistering = true
@@ -41,10 +55,14 @@ class FreeTokenClient: ObservableObject {
         let appToken = token
 
         do {
-            // Configure FreeToken with the app token
+            // Step 1: Configure FreeToken with the app token
+            // This initializes the SDK with your application credentials
+            // See: https://docs.freetoken.ai/docs/getting-started
             _ = try FreeToken.shared.configure(appToken: appToken)
 
-            // Register device session
+            // Step 2: Register device session with a unique scope
+            // The scope helps organize and track device sessions
+            // Success callback is called when registration is complete
             await client.registerDeviceSession(scope: "example-app-device", success: {
                 // Complete registration immediately, download model in background
                 await self.completeRegistration()
@@ -71,12 +89,19 @@ class FreeTokenClient: ObservableObject {
         }
     }
 
+    // MARK: - Model Download
+    // Downloads AI models for on-device inference
+    // This enables offline AI capabilities and faster response times
+    // For performance optimization, see: https://docs.freetoken.ai/docs/guides/performance
+    // For automatic fallback between device/cloud, see: https://docs.freetoken.ai/docs/guides/automatic-device-fallbacks
     private func downloadModel() async {
         await MainActor.run {
             self.isDownloadingModel = true
             self.modelDownloadProgress = 0.0
         }
 
+        // Download the AI model for local inference
+        // If download fails, the SDK automatically falls back to cloud inference
         await client.downloadAIModel(success: { _ in
             ExampleAppLogger.shared.log("✅ Model downloaded successfully")
             await MainActor.run {
@@ -128,10 +153,14 @@ class FreeTokenClient: ObservableObject {
         ExampleAppLogger.shared.log("✅ Successfully registered device and completed setup")
     }
 
+    // MARK: - Device Reset
     // Reset device - clears all state and returns to registration screen
+    // This removes all cached data, models, and user sessions
+    // Useful for testing or when switching users
+    // For memory management best practices, see: https://docs.freetoken.ai/docs/guides/memory-management
     func resetDevice() async {
         do {
-            // Reset the FreeToken SDK
+            // Reset the FreeToken SDK - clears all local data and models
             try await client.resetDevice()
 
             // Reset our local state

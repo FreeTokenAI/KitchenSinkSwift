@@ -1,6 +1,11 @@
 import SwiftUI
 import FreeToken
 
+// MARK: - Text Completion View
+// Demonstrates FreeToken's text completion API for generating content
+// Completions are simpler than chat - they generate text based on a prompt without conversation context
+// For using cloud-only models with completions, see: https://docs.freetoken.ai/docs/guides/cloud-only-models
+// For performance optimization, see: https://docs.freetoken.ai/docs/guides/performance
 struct CompletionsView: View {
     @ObservedObject var freeTokenClient: FreeTokenClient
 
@@ -507,6 +512,12 @@ struct CompletionsView: View {
         )
     }
 
+    // MARK: - Text Completion Generation
+    // Generates text completion using FreeToken SDK
+    // Supports streaming tokens for real-time display and custom AI parameters
+    // The SDK automatically handles device/cloud routing based on model availability
+    // For understanding automatic fallbacks, see: https://docs.freetoken.ai/docs/guides/automatic-device-fallbacks
+    // AIRunConfig parameters control generation quality and creativity
     private func performCompletion() async {
         guard !inputText.isEmpty else { return }
 
@@ -518,6 +529,11 @@ struct CompletionsView: View {
         showingCompletionModal = true
 
         // Build AIRunConfig if enabled
+        // These parameters control generation quality and creativity
+        // temperature: Controls randomness (0.0 = deterministic, 1.0 = creative)
+        // topK/topP: Control token selection diversity
+        // maxGenerationTokens: Maximum length of generated text
+        // See AIRunConfig documentation for parameter details
         var config: FreeToken.AIRunConfig? = nil
         if aiRunConfigEnabled {
             config = FreeToken.AIRunConfig(
@@ -533,6 +549,8 @@ struct CompletionsView: View {
         // are not part of AIRunConfig - they are parameters to generateCompletion
         // For now, we won't use these in the completions API as they're specific to chat
 
+        // Generate completion with optional streaming
+        // The SDK handles model selection, device/cloud routing, and token generation
         await freeTokenClient.client.generateCompletion(
             prompt: inputText,
             modelCode: selectedModelCode,

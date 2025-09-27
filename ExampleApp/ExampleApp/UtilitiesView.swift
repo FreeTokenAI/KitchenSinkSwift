@@ -1,6 +1,11 @@
 import SwiftUI
 import FreeToken
 
+// MARK: - Utilities View
+// Provides utility functions for FreeToken SDK management
+// Includes encryption, device reset, token counting, and telemetry features
+// For telemetry and stats guide, see: https://docs.freetoken.ai/docs/guides/telemetry-stats
+// For encryption guide, see: https://docs.freetoken.ai/docs/guides/encryption
 struct UtilitiesView: View {
     private var freeTokenClient: FreeTokenClient
     @State private var showingAlert = false
@@ -197,8 +202,16 @@ struct UtilitiesView: View {
     }
 
     @MainActor
+    // MARK: - Encryption Management
+    // Enables end-to-end encryption for sensitive data
+    // Generates both user-private and shared-public keys for different security scopes
+    // User-private: For data that only this user should access
+    // Shared-public: For data that can be shared between users securely
+    // For complete encryption guide, see: https://docs.freetoken.ai/docs/guides/encryption
     private func enableEncryption() {
         // Generate both keys
+        // userPrivate scope: Encrypts data that only this user can decrypt
+        // sharedPublic scope: Encrypts data that can be shared with other authorized users
         let userPrivateKey = freeTokenClient.client.enableEncryption(scope: .userPrivate)
         let sharedPublicKey = freeTokenClient.client.enableEncryption(scope: .sharedPublic)
 
@@ -228,6 +241,11 @@ struct UtilitiesView: View {
         showingAlert = true
     }
 
+    // MARK: - Device Reset
+    // Performs a complete device reset - clears all cached data, models, and sessions
+    // User will need to re-register after reset
+    // This is useful for testing or when switching between users
+    // For memory management guide, see: https://docs.freetoken.ai/docs/guides/memory-management
     @MainActor
     private func performDeviceReset() async {
         isResetting = true

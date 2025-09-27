@@ -2,6 +2,10 @@ import SwiftUI
 import FreeToken
 import CryptoKit
 
+// MARK: - Chat View Model
+// Manages AI chat conversations using FreeToken SDK
+// This ViewModel handles message threads, AI model selection, and streaming responses
+// For comprehensive chat guide, see: https://docs.freetoken.ai/docs/guides/ai-chat
 @MainActor
 class ChatViewModel: ObservableObject, @unchecked Sendable {
     @Published var streamedResponse = ""
@@ -53,7 +57,11 @@ class ChatViewModel: ObservableObject, @unchecked Sendable {
         // The thread will be created when the user sends their first message
     }
 
+    // MARK: - AI Model Prewarming
     // Unified prewarm method for AI model - handles all cases
+    // Prewarming loads the AI model into memory for faster first response
+    // For performance optimization, see: https://docs.freetoken.ai/docs/guides/performance
+    // For cloud vs device models, see: https://docs.freetoken.ai/docs/guides/cloud-only-models
     nonisolated func prewarmChat(overrideModelCode: String? = nil) async {
         // Get values from MainActor
         let (selectedCode, models, threadID, runId, runConfig, toolsEnabled) = await MainActor.run {
@@ -109,7 +117,11 @@ class ChatViewModel: ObservableObject, @unchecked Sendable {
         }
     }
 
-    // Load available AI models
+    // MARK: - Model Management
+    // Load available AI models from FreeToken SDK
+    // This fetches both local and cloud models available for your app
+    // For model selection guide, see: https://docs.freetoken.ai/docs/guides/multiple-ai-models
+    // For automatic fallback between device and cloud, see: https://docs.freetoken.ai/docs/guides/automatic-device-fallbacks
     nonisolated func loadAIModels() async {
         await freeTokenClient.client.listAIModels(
             success: { models in
@@ -164,7 +176,10 @@ class ChatViewModel: ObservableObject, @unchecked Sendable {
         await prewarmChat()
     }
 
-    // Register the fetch_weather tool
+    // MARK: - Tool Functions
+    // Register the fetch_weather tool for function calling
+    // Tools allow the AI to execute functions and interact with external systems
+    // For complete tool calling guide, see: https://docs.freetoken.ai/docs/guides/tool-calling
     nonisolated func registerWeatherTool() async {
         let weatherToolDefinition = """
         {
@@ -265,7 +280,11 @@ class ChatViewModel: ObservableObject, @unchecked Sendable {
         }
     }
 
+    // MARK: - Message Sending
     // Add message and run thread to get AI response
+    // This is the main method for sending user messages and receiving AI responses
+    // Messages are added to a thread which maintains conversation context
+    // For chat implementation details, see: https://docs.freetoken.ai/docs/guides/ai-chat
     nonisolated func sendMessage(message: String, isThreadFirstMessage: Bool) async {
         let threadID = await MainActor.run { messageThreadID }
 
@@ -320,6 +339,11 @@ class ChatViewModel: ObservableObject, @unchecked Sendable {
         )
     }
 
+    // MARK: - Thread Execution
+    // Runs the message thread to generate AI response
+    // Supports streaming tokens, tool calls, and document search (RAG)
+    // For streaming implementation, see: https://docs.freetoken.ai/docs/guides/ai-chat
+    // For RAG capabilities, see: https://docs.freetoken.ai/docs/guides/rag
     private nonisolated func runThread() async {
         let threadID = await MainActor.run { messageThreadID }
 
