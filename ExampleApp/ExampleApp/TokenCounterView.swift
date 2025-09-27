@@ -2,7 +2,11 @@ import SwiftUI
 import FreeToken
 import Combine
 
-// Separate class to handle token counting state
+// MARK: - Token Counter View Model
+// Handles token counting functionality for estimating AI model usage
+// Token counting helps predict costs and manage context window limits
+// For telemetry and usage stats, see: https://docs.freetoken.ai/docs/guides/telemetry-stats
+// For understanding performance optimization, see: https://docs.freetoken.ai/docs/guides/performance
 class TokenCounterViewModel: ObservableObject {
     @Published var tokenCount: Int = 0
     @Published var isCounting: Bool = false

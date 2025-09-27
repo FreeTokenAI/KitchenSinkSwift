@@ -2,6 +2,11 @@ import Foundation
 import FreeToken
 import Combine
 
+// MARK: - AI Models View Model
+// Manages AI model discovery, download, and lifecycle
+// This ViewModel handles listing available models, downloading for on-device inference, and managing model storage
+// For model management guide, see: https://docs.freetoken.ai/docs/guides/multiple-ai-models
+// For performance optimization with local models, see: https://docs.freetoken.ai/docs/guides/performance
 @MainActor
 class AIModelsViewModel: ObservableObject {
     @Published var aiModels: [FreeToken.AIModel] = []
@@ -20,6 +25,11 @@ class AIModelsViewModel: ObservableObject {
         self.freeTokenClient = freeTokenClient
     }
 
+    // MARK: - Model Discovery
+    // Load all available AI models from FreeToken SDK
+    // This includes both cloud-only and downloadable models
+    // For understanding cloud vs local models, see: https://docs.freetoken.ai/docs/guides/cloud-only-models
+    // For automatic device/cloud fallback, see: https://docs.freetoken.ai/docs/guides/automatic-device-fallbacks
     func loadAIModels() async {
         isLoading = true
         errorMessage = nil
@@ -57,6 +67,12 @@ class AIModelsViewModel: ObservableObject {
         }
     }
 
+    // MARK: - Model Download
+    // Downloads an AI model for on-device inference
+    // Downloaded models provide faster response times and offline capability
+    // The SDK automatically falls back to cloud if local model fails
+    // For memory management of downloaded models, see: https://docs.freetoken.ai/docs/guides/memory-management
+    // For performance benefits, see: https://docs.freetoken.ai/docs/guides/performance
     func downloadModel(modelCode: String) async {
         ExampleAppLogger.shared.log("🚀 Starting model download for: \(modelCode)")
         // Use the global download state from FreeTokenClient
@@ -134,6 +150,11 @@ class AIModelsViewModel: ObservableObject {
         return modelDownloadStates[modelCode] == .downloaded
     }
 
+    // MARK: - Model Deletion
+    // Deletes a downloaded AI model from device storage
+    // This frees up storage space but model will need to be re-downloaded for local inference
+    // Cloud inference will still be available as a fallback
+    // For memory management best practices, see: https://docs.freetoken.ai/docs/guides/memory-management
     func deleteModel(modelCode: String) async {
         await freeTokenClient.client.deleteAIModelCache(modelCode: modelCode)
 
